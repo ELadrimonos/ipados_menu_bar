@@ -5,12 +5,13 @@
 Pod::Spec.new do |s|
   s.name             = 'ipados_menu_bar'
   s.version          = '0.0.1'
-  s.summary          = 'TODO'
+  s.summary          = 'A Flutter plugin for integrating the iPadOS menubar into Flutter apps.'
   s.description      = <<-DESC
-TODO
+A Flutter plugin that enables developers to add a native-like iPadOS menubar to their Flutter applications.
+It provides customizable menu items and actions, following Apple's Human Interface Guidelines for a seamless iPad experience.
                        DESC
-  s.homepage         = 'http://example.com'
-  s.license          = { :file => '../LICENSE' }
+  s.homepage         = 'https://github.com/ELadrimonos/ipados_menu_bar'
+  s.license          = { :type => 'MIT', :file => '../LICENSE' }
   s.author           = { 'Adrián Primo Bernat' => 'aprimo.developer@gmail.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
