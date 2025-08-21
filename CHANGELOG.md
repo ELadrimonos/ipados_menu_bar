@@ -1,3 +1,5 @@
 ## 0.0.1
 
-* TODO: Describe initial release.
+* Custom PlatformMenuDelegate for iPad
+* Custom menu items and submenus (no custom icons on items, as of now)
+* Ability to hide select default items (File, Edit, Format, View)
