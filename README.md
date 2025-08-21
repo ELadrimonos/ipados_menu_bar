@@ -4,7 +4,7 @@
         <img src="https://wakatime.com/badge/github/ELadrimonos/ipados_menu_bar.svg" alt="WakaTime">
     </a>
     <br><br>
-    <p><strong>A custom PlatformMenuDelegate that adds iPadOS 18+ menu bar functionality to Flutter apps</strong></p>
+    <p><strong>A custom PlatformMenuDelegate that adds iPadOS 26+ menu bar functionality to Flutter apps</strong></p>
 </div>
 
 ---
