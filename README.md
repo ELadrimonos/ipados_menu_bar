@@ -1,11 +1,25 @@
 <div style="text-align: center;">
-    <h1>iPadOS Menu Bar</h1>
+    <h1 align="center">iPadOS Menu Bar</h1>
     <a href="https://wakatime.com/badge/github/ELadrimonos/ipados_menu_bar">
         <img src="https://wakatime.com/badge/github/ELadrimonos/ipados_menu_bar.svg" alt="WakaTime">
     </a>
     <br><br>
     <p><strong>A custom PlatformMenuDelegate that adds iPadOS 26+ menu bar functionality to Flutter apps</strong></p>
 </div>
+
+---
+
+## 📑 Table of Contents
+
+- [🚀 Features](#-features)
+- [📦 Installation](#-installation)
+- [🏁 Getting Started](#-getting-started)
+- [🎛️ Customization Options](#️-customization-options)
+- [📱 Platform Support](#-platform-support)
+- [🔧 Feature Roadmap](#-feature-roadmap)
+- [⚠️ API Stability Notice](#️-api-stability-notice)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
 ---
 
@@ -93,6 +107,30 @@ class MyApp extends StatelessWidget {
 }
 ```
 
+### Advanced Configuration
+
+You can customize default menu items behavior using the `configureDefaultMenus` method:
+
+```dart
+// Get instance of the Menu Delegate
+_menuDelegate = WidgetsBinding.instance.platformMenuDelegate as IpadOSPlatformMenuDelegate;
+
+// Hide default menus
+await _menuDelegate.configureDefaultMenus({
+    'hidden': ['format', 'edit'],
+});
+
+// Add custom items to the default iOS menu items
+await _menuDelegate.configureDefaultMenus({
+    'file': {
+        'additionalItems': [
+          {'id': 100, 'label': 'New Special File', 'enabled': true},
+          {'id': 101, 'label': 'Open Special File', 'enabled': true},
+        ],
+    },
+});
+```
+
 ## 🎛️ Customization Options
 
 ### Hidden Default Menus
@@ -150,6 +188,16 @@ This package is specifically designed for iPadOS 26+ and provides enhanced funct
 | Menu Icons Support | ❌ |
 | Custom Menu Items Placement | ❌ |
 | Menu Separators | ❓ |
+
+## ⚠️ API Stability Notice
+
+**Important:** This package is currently in early development (version 0.x.x). The API is subject to breaking changes until it reaches a stable 1.0.0 release. Please be aware that:
+
+- Method signatures may change
+- Configuration options may be modified or removed
+- New features may introduce breaking changes
+
+We recommend pinning to a specific version in your `pubspec.yaml` and reviewing the changelog before updating. Once the package reaches version 1.0.0, we will follow semantic versioning for all future releases.
 
 ## 🤝 Contributing
 
