@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ipados_menu_bar/ipados_platform_menu_delegate.dart';
 
+// TODO Update tests as to not use the default template tests
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
