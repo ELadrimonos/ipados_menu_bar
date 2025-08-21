@@ -135,7 +135,7 @@ Create organized menu hierarchies with:
 
 ## 📱 Platform Support
 
-This package is specifically designed for iPadOS 26+ and provides enhanced functionality when running on compatible devices. On other platforms, it gracefully falls back to standard Flutter menu behavior.
+This package is specifically designed for iPadOS 26+ and provides enhanced functionality when running on compatible devices. On older iOS versions, it gracefully falls back to standard Flutter menu behavior.
 
 ## 🔧 Feature Roadmap
 
