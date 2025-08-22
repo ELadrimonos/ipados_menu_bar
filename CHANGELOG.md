@@ -1,3 +1,8 @@
+## 0.0.3
+
+* Corrected README.md to correctly show GIF showcase on pub.dev
+
+
 ## 0.0.2
 
 * Correct custom menus placement
