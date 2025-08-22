@@ -1,1 +1,6 @@
 preview.gif
+build/
+.dart_tool/
+.idea/
+*.iml
+.DS_Store
