@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart';
-import 'apple_default_menu_items_enum.dart';
 
 /// iPadOS exclusive channels
 const String _kMenuSetMethod = 'Menu.setMenus';
@@ -13,7 +13,6 @@ const String _kMenuItemClosedMethod = 'Menu.closed';
 //  using a dictionary with their IDs and allow
 //  linking default menu items to actions inside dart code
 //  or just be able to assign callbacks using a predefined class
-
 
 class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   IpadOSPlatformMenuDelegate({MethodChannel? channel})
@@ -32,23 +31,25 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) {
-    print("IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus");
+    if (kDebugMode)
+      debugPrint(
+        "IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus",
+      );
 
     _idMap.clear();
     final List<Map<String, Object?>> representation = <Map<String, Object?>>[];
 
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
-        print("Processing menu: ${childItem.label}");
-        // Usar nuestra versión personalizada que maneja grupos
-        representation.addAll(
-          _customToChannelRepresentation(childItem),
-        );
+        if (kDebugMode) debugPrint("Processing menu: ${childItem.label}");
+        representation.addAll(_customToChannelRepresentation(childItem));
       }
     }
 
-    final Map<String, Object?> windowMenu = <String, Object?>{'0': representation};
-    print("Sending menu representation: $windowMenu");
+    final Map<String, Object?> windowMenu = <String, Object?>{
+      '0': representation,
+    };
+    if (kDebugMode) debugPrint("Sending menu representation: $windowMenu");
     channel.invokeMethod<void>(_kMenuSetMethod, windowMenu);
   }
 
@@ -58,7 +59,9 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     return _serial;
   }
 
-  List<Map<String, Object?>> _customToChannelRepresentation(PlatformMenuItem item) {
+  List<Map<String, Object?>> _customToChannelRepresentation(
+    PlatformMenuItem item,
+  ) {
     final List<Map<String, Object?>> result = [];
 
     if (item is PlatformMenu) {
@@ -73,18 +76,16 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'children': children,
       });
     } else if (item is PlatformMenuItemGroup) {
-      // Un grupo se traduce como "divider/group" en UIKit
+      /// A group is traslated as "divider/group" in UIKit
       final List<Map<String, Object?>> groupChildren = [];
       for (final member in item.members) {
         groupChildren.addAll(_customToChannelRepresentation(member));
       }
-      result.add({
-        'type': 'group',
-        'children': groupChildren,
-      });
+      result.add({'type': 'group', 'children': groupChildren});
     } else {
-      // Disable item on native side if no method is passed
-      final bool enabled = item.onSelected != null || item.onSelectedIntent != null;
+      /// Disable item on native side if no method is passed
+      final bool enabled =
+          item.onSelected != null || item.onSelectedIntent != null;
 
       final Map<String, Object?> itemMap = {
         'id': _getId(item),
@@ -131,22 +132,24 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   Future<void> _methodCallHandler(MethodCall call) async {
-    print(
-      "Method call received: ${call.method} with arguments: ${call.arguments}",
-    );
+    if (kDebugMode) {
+      debugPrint(
+        "Method call received: ${call.method} with arguments: ${call.arguments}",
+      );
+    }
 
     final int id = call.arguments as int;
     if (!_idMap.containsKey(id)) {
-      print('Menu event for unknown id $id');
+      if (kDebugMode) debugPrint('Menu event for unknown id $id');
       return;
     }
 
     final PlatformMenuItem item = _idMap[id]!;
-    print("Found menu item: ${item.label}");
+    if (kDebugMode) debugPrint("Found menu item: ${item.label}");
 
     switch (call.method) {
       case _kMenuSelectedCallbackMethod:
-        print("Executing onSelected for: ${item.label}");
+        if (kDebugMode) debugPrint("Executing onSelected for: ${item.label}");
         item.onSelected?.call();
         if (item.onSelectedIntent != null) {
           final BuildContext? context =
@@ -163,7 +166,7 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         item.onClose?.call();
         break;
       default:
-        print('Unknown menu method: ${call.method}');
+        if (kDebugMode) debugPrint('Unknown menu method: ${call.method}');
     }
   }
 
@@ -171,7 +174,7 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     try {
       await channel.invokeMethod<void>('Menu.configureDefaultMenus', config);
     } catch (e) {
-      debugPrint('Error configuring default menus: $e');
+      if (kDebugMode) debugPrint('Error configuring default menus: $e');
     }
   }
 
@@ -182,7 +185,7 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       );
       return result;
     } catch (e) {
-      debugPrint('Error getting available default menus: $e');
+      if (kDebugMode) debugPrint('Error getting available default menus: $e');
       return null;
     }
   }
