@@ -31,10 +31,11 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) {
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
         "IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus",
       );
+    }
 
     _idMap.clear();
     final List<Map<String, Object?>> representation = <Map<String, Object?>>[];
