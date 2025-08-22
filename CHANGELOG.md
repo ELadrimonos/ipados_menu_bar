@@ -1,3 +1,8 @@
+## 0.0.2
+
+* Correct custom menus placement
+
+
 ## 0.0.1
 
 * Custom PlatformMenuDelegate for iPad

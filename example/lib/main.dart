@@ -61,10 +61,13 @@ class _MyAppState extends State<MyApp> {
             PlatformMenu(
               label: 'Test Menu',
               menus: [
-                PlatformMenuItem(
-                  label: 'Item 1',
-                  onSelected: () => debugPrint("Item 1 selected"),
-                ),
+                //TODO Hacer divider tras el group (y antes si hay algun otro item delante)
+                PlatformMenuItemGroup(members: [
+                  PlatformMenuItem(
+                    label: 'Item 1',
+                    onSelected: () => debugPrint("Item 1 selected"),
+                  ),
+                ]),
                 PlatformMenuItem(
                   label: 'Item 2',
                   onSelected: () => debugPrint("Item 2 selected"),

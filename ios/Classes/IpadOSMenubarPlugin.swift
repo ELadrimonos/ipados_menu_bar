@@ -242,21 +242,6 @@ extension IpadOSMenubarPlugin {
     }
   }
 
-  // Never allow to hide important items such as AppInfo, Window and Help
-  private func hideDefaultMenu(with builder: UIMenuBuilder, menuId: String) {
-    switch menuId {
-    case "format":
-      builder.remove(menu: .format)
-    case "file":
-      builder.remove(menu: .file)
-    case "edit":
-      builder.remove(menu: .edit)
-    case "view":
-      builder.remove(menu: .view)
-    default:
-      print("Cannot hide menu: \(menuId)")
-    }
-  }
 
   private func buildCustomMenus(with builder: UIMenuBuilder) {
     print("Building custom Flutter menus...")
@@ -272,13 +257,77 @@ extension IpadOSMenubarPlugin {
       let menuElements = buildMenuElements(from: children)
       if !menuElements.isEmpty {
         let customMenu = UIMenu(title: title, children: menuElements)
-        builder.insertSibling(customMenu, afterMenu: .help)
-        print("Added custom menu: \(title)")
+
+        if insertCustomMenuInCorrectPosition(builder: builder, menu: customMenu) {
+          print("Added custom menu: \(title)")
+        } else {
+          print("Failed to add custom menu: \(title)")
+        }
       }
     }
   }
 
-  // Función recursiva existente (sin cambios)
+  private func insertCustomMenuInCorrectPosition(builder: UIMenuBuilder, menu: UIMenu) -> Bool {
+    // Correct order based on Apple HIG: AppInfo, File, Edit, Format, View, [CUSTOM], Window, Help
+    // https://developer.apple.com/videos/play/wwdc2025/208/?time=648
+
+    // First try after the View menu
+    if builder.menu(for: .view) != nil {
+      builder.insertSibling(menu, afterMenu: .view)
+      return true
+    }
+
+    // If View doesn't exist, add after Format menu
+    if builder.menu(for: .format) != nil {
+      builder.insertSibling(menu, afterMenu: .format)
+      return true
+    }
+
+    // And so on...
+    if builder.menu(for: .edit) != nil {
+      builder.insertSibling(menu, afterMenu: .edit)
+      return true
+    }
+
+    if builder.menu(for: .file) != nil {
+      builder.insertSibling(menu, afterMenu: .file)
+      return true
+    }
+
+    // As last resort, add it before the Window menu
+    if builder.menu(for: .window) != nil {
+      builder.insertSibling(menu, beforeMenu: .window)
+      return true
+    }
+
+    // Shouldn't even get here, but just in case
+    if builder.menu(for: .help) != nil {
+      builder.insertSibling(menu, beforeMenu: .help)
+      return true
+    }
+
+    print("Warning: Could not find suitable position for custom menu")
+    return false
+  }
+
+  // Never allow to hide important items such as AppInfo, Window and Help
+  private func hideDefaultMenu(with builder: UIMenuBuilder, menuId: String) {
+    switch menuId {
+    case "file":
+      builder.remove(menu: .file)
+    case "edit":
+      builder.remove(menu: .edit)
+    case "format":
+      builder.remove(menu: .format)
+    case "view":
+      builder.remove(menu: .view)
+    case "toolbar":
+      builder.remove(menu: .toolbar)
+    default:
+      print("Cannot hide menu: \(menuId) (AppInfo, Window and Help are protected)")
+    }
+  }
+
   private func buildMenuElements(from children: [[String: Any]]) -> [UIMenuElement] {
     return children.compactMap { childData in
       guard let title = childData["label"] as? String,
