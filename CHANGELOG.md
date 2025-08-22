@@ -1,3 +1,9 @@
+## 0.0.2
+
+* Correct custom menus placement
+* Enable/disable items
+
+
 ## 0.0.1
 
 * Custom PlatformMenuDelegate for iPad

@@ -12,9 +12,8 @@ const String _kMenuItemClosedMethod = 'Menu.closed';
 // TODO Access the default items as PlatformMenu widgets and customize them
 //  using a dictionary with their IDs and allow
 //  linking default menu items to actions inside dart code
+//  or just be able to assign callbacks using a predefined class
 
-// TODO Place custom menus between View and Format, following Apple's Design Guidelines
-// link: https://developer.apple.com/videos/play/wwdc2025/208/?time=648
 
 class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   IpadOSPlatformMenuDelegate({MethodChannel? channel})
@@ -33,9 +32,7 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) {
-    print(
-      "IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus",
-    );
+    print("IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus");
 
     _idMap.clear();
     final List<Map<String, Object?>> representation = <Map<String, Object?>>[];
@@ -43,15 +40,14 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
         print("Processing menu: ${childItem.label}");
+        // Usar nuestra versión personalizada que maneja grupos
         representation.addAll(
-          childItem.toChannelRepresentation(this, getId: _getId),
+          _customToChannelRepresentation(childItem),
         );
       }
     }
 
-    final Map<String, Object?> windowMenu = <String, Object?>{
-      '0': representation,
-    };
+    final Map<String, Object?> windowMenu = <String, Object?>{'0': representation};
     print("Sending menu representation: $windowMenu");
     channel.invokeMethod<void>(_kMenuSetMethod, windowMenu);
   }
@@ -60,6 +56,54 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     _serial += 1;
     _idMap[_serial] = item;
     return _serial;
+  }
+
+  List<Map<String, Object?>> _customToChannelRepresentation(PlatformMenuItem item) {
+    final List<Map<String, Object?>> result = [];
+
+    if (item is PlatformMenu) {
+      final List<Map<String, Object?>> children = [];
+      for (final child in item.menus) {
+        children.addAll(_customToChannelRepresentation(child));
+      }
+      result.add({
+        'id': _getId(item),
+        'label': item.label,
+        'enabled': true,
+        'children': children,
+      });
+    } else if (item is PlatformMenuItemGroup) {
+      // Un grupo se traduce como "divider/group" en UIKit
+      final List<Map<String, Object?>> groupChildren = [];
+      for (final member in item.members) {
+        groupChildren.addAll(_customToChannelRepresentation(member));
+      }
+      result.add({
+        'type': 'group',
+        'children': groupChildren,
+      });
+    } else {
+      // Disable item on native side if no method is passed
+      final bool enabled = item.onSelected != null || item.onSelectedIntent != null;
+
+      final Map<String, Object?> itemMap = {
+        'id': _getId(item),
+        'label': item.label,
+        'enabled': enabled,
+      };
+
+      if (item.members.isNotEmpty) {
+        final List<Map<String, Object?>> children = [];
+        for (final child in item.members) {
+          children.addAll(_customToChannelRepresentation(child));
+        }
+        itemMap['children'] = children;
+      }
+
+      result.add(itemMap);
+    }
+
+    return result;
   }
 
   @override

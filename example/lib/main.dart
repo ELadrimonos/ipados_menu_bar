@@ -62,12 +62,26 @@ class _MyAppState extends State<MyApp> {
               label: 'Test Menu',
               menus: [
                 PlatformMenuItem(
-                  label: 'Item 1',
-                  onSelected: () => debugPrint("Item 1 selected"),
+                  label: 'Item 0 (Enabled: $toggledOption)',
+                  onSelected: toggledOption
+                      ? () => debugPrint("Item 0 selected")
+                      : null,
+                ),
+                PlatformMenuItemGroup(
+                  members: [
+                    PlatformMenuItem(
+                      label: 'Item 1',
+                      onSelected: () => debugPrint("Item 1 selected"),
+                    ),
+                    PlatformMenuItem(
+                      label: 'Item 2',
+                      onSelected: () => debugPrint("Item 2 selected"),
+                    ),
+                  ],
                 ),
                 PlatformMenuItem(
-                  label: 'Item 2',
-                  onSelected: () => debugPrint("Item 2 selected"),
+                  label: 'Item 3',
+                  onSelected: () => debugPrint("Item 3 selected"),
                 ),
               ],
             ),
@@ -87,6 +101,9 @@ class _MyAppState extends State<MyApp> {
                       PlatformMenuItem(
                         label: 'Secret item',
                         onSelected: () => debugPrint("Secret selected"),
+                      ),
+                      PlatformMenuItem(
+                        label: 'Button that gives you 1M dollars',
                       ),
                     ],
                   ),
