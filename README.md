@@ -1,5 +1,5 @@
 <div style="text-align: center;">
-    <h1 align="center">iPadOS Menu Bar</h1>
+    <h1 align="center">🍎 iPadOS Menu Bar 📱</h1>
     <a href="https://wakatime.com/badge/github/ELadrimonos/ipados_menu_bar">
         <img src="https://wakatime.com/badge/github/ELadrimonos/ipados_menu_bar.svg" alt="WakaTime">
     </a>
@@ -7,10 +7,16 @@
     <p><strong>A custom PlatformMenuDelegate that adds iPadOS 26+ menu bar functionality to Flutter apps</strong></p>
 </div>
 
+
+<p align="center">
+  <img src="https://github.com/ELadrimonos/ipados_menu_bar/blob/c85581d8c0899319de24221e56a2078414664d79/preview.gif" width="80%" alt="iPad menu bar preview"/>
+</p>
+
 ---
 
 ## 📑 Table of Contents
 
+- [🧭 Human Interface Guidelines](#-human-interface-guidelines)
 - [🚀 Features](#-features)
 - [📦 Installation](#-installation)
 - [🏁 Getting Started](#-getting-started)
@@ -23,9 +29,12 @@
 
 ---
 
-<p align="center">
-  <img src="https://github.com/ELadrimonos/ipados_menu_bar/blob/5d489028d0cbb6e75a2859e290ca3858c3f66dd6/preview.gif" width="80%" alt="iPad menu bar preview"/>
-</p>
+## 🧭 Human Interface Guidelines
+
+This package follows Apple’s official Human Interface Guidelines for the iPadOS menu bar. Before designing your menus, review these resources to ensure consistency with the system experience:
+
+- WWDC session on the iPadOS menu bar: https://developer.apple.com/videos/play/wwdc2025/208/?time=624
+- Apple HIG – Menu Bar: https://developer.apple.com/design/human-interface-guidelines/the-menu-bar
 
 ## 🚀 Features
 
@@ -37,7 +46,7 @@ Add `ipados_menu_bar` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ipados_menu_bar: ^0.0.1
+  ipados_menu_bar: ^0.0.2
 ```
 
 Then run:
@@ -164,6 +173,22 @@ await _menuDelegate.configureDefaultMenus({
 });
 ```
 
+### Disable Menu Items
+
+On custom menu items, you can disable menu items by setting the `onSelected` or `onSelectedIntent` a null value:
+
+```dart
+// Controlling when an item should be clickable using a boolean
+PlatformMenuItem(
+  label: 'Item 0 (Enabled: $enabledBoolean)',
+  onSelected: enabledBoolean
+      ? () => debugPrint("Item 0 selected")
+      : null,
+),
+```
+
+This is handful when changing contexts, like opening a modal.
+
 ### Menu Structure
 
 Create organized menu hierarchies with:
@@ -181,13 +206,14 @@ This package is specifically designed for iPadOS 26+ and provides enhanced funct
 |---------|--------|
 | Basic Menu Bar Integration | ✅ |
 | Custom Menu Items | ✅ |
+| Custom Menu Items HIG Placement | ✅ |
 | Hide Default Menus (File, Edit, Format, View) | ✅ |
 | Submenu Nesting | ✅ |
 | Dynamic Menu Updates | ✅ |
-| App Info custom children items | 🚧 |
+| Menu Separators | ✅ |
+| App Info Custom Children Items | ❌ |
 | Menu Icons Support | ❌ |
-| Custom Menu Items Placement | ❌ |
-| Menu Separators | ❓ |
+| Default Items Callbacks via Dart | ❌ |
 
 ## ⚠️ API Stability Notice
 
