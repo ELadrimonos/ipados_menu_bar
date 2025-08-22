@@ -9,7 +9,7 @@
 
 
 <p align="center">
-  <img src="https://github.com/ELadrimonos/ipados_menu_bar/blob/c85581d8c0899319de24221e56a2078414664d79/preview.gif" width="80%" alt="iPad menu bar preview"/>
+  <img src="https://raw.githubusercontent.com/ELadrimonos/ipados_menu_bar/refs/heads/main/preview.gif" width="80%" alt="iPad menu bar preview"/>
 </p>
 
 ---
