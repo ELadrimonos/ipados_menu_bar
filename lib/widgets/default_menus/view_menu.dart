@@ -7,5 +7,5 @@ class DefaultViewMenu extends DefaultIpadMenu {
   @override
   String get menuId => 'view';
 
-  DefaultViewMenu({required super.label, required super.menus});
+  DefaultViewMenu() : super(label: 'View', menus: []);
 }

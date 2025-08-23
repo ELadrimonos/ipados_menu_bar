@@ -60,6 +60,8 @@ class _MyAppState extends State<MyApp> {
           menus: [
             DefaultEditMenu(),
             DefaultFileMenu(),
+            DefaultWindowMenu(),
+            DefaultViewMenu(),
             PlatformMenu(
               label: 'Test Menu',
               menus: [
