@@ -65,7 +65,8 @@ class _MyAppState extends State<MyApp> {
             PlatformMenu(
               label: 'Test Menu',
               menus: [
-                PlatformMenuItem(
+                PlatformMenuItemWithIcon(
+                  icon: CupertinoIcons.add,
                   label: 'Item 0 (Enabled: $toggledOption)',
                   onSelected: toggledOption
                       ? () => debugPrint("Item 0 selected")
@@ -99,7 +100,8 @@ class _MyAppState extends State<MyApp> {
                   }),
                 ),
                 if (toggledOption)
-                  PlatformMenu(
+                  PlatformMenuWithIcon(
+                    icon: CupertinoIcons.ellipses_bubble,
                     label: "Unlocked Secrets",
                     menus: [
                       PlatformMenuItem(

@@ -87,7 +87,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
             userInfo: [
                 "customMenus": customMenus,
                 "presentDefaultMenus": presentDefaultMenus,
-                "defaultMenuItems": defaultMenuItems
+                "defaultMenuItems": defaultMenuItems,
             ]
         )
     }
@@ -169,7 +169,9 @@ extension IpadOSMenubarPlugin {
         }
     }
 
-    private func configureDefaultMenu(with builder: UIMenuBuilder, menuId: String, items: [[String: Any]]) {
+    private func configureDefaultMenu(
+        with builder: UIMenuBuilder, menuId: String, items: [[String: Any]]
+    ) {
         print("Configuring \(menuId) menu with \(items.count) items")
 
         let menuElements = buildMenuElements(from: items)
@@ -323,20 +325,26 @@ extension IpadOSMenubarPlugin {
 
             let enabled = childData["enabled"] as? Bool ?? true
 
-            if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty {
+            if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty
+            {
                 let submenuElements = buildMenuElements(from: grandchildren)
 
+                // UIImage here for items that open submenus
                 if !submenuElements.isEmpty {
                     let submenu = UIMenu(
                         title: title,
+                        image: UIImage(systemName: "moon"),
+
                         options: enabled ? [] : [.displayInline],
                         children: submenuElements
                     )
                     elements.append(submenu)
                 }
             } else {
+                // UIImage here for items that don't open a submenu
                 let action = UIAction(
                     title: title,
+                    image: UIImage(systemName: "trash"),
                     attributes: enabled ? [] : [.disabled]
                 ) { [weak self] _ in
                     print("Menu action selected: \(title) (id: \(id))")
