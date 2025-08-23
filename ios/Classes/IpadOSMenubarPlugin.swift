@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 
+// TODO Investigar UIMenu Image e intentar aplicar IconData
 public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     private var channel: FlutterMethodChannel!
     private var menuModel: [[String: Any]] = []

@@ -34,7 +34,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _configureDefaultMenus() async {
     await _menuDelegate.configureDefaultMenus({
-      'file': {
+/*      'file': {
         'additionalItems': [
           {'id': 100, 'label': 'Mi Nuevo Archivo', 'enabled': true},
           {'id': 101, 'label': 'Mi Abrir Especial', 'enabled': true},
@@ -44,8 +44,8 @@ class _MyAppState extends State<MyApp> {
         'additionalItems': [
           {'id': 102, 'label': 'Mi Función Personalizada', 'enabled': true},
         ],
-      },
-      'hidden': ['format', 'file', 'edit'],
+      },*/
+      'hidden': [],
     });
   }
 
@@ -111,8 +111,12 @@ class _MyAppState extends State<MyApp> {
             ),
           ],
           child: Center(
-            child: Text(
-              "Swipe down from the top of the screen to see the magic happen",
+            child: Column(
+              children: [
+                Text(
+                  "Swipe down from the top of the screen to see the magic happen",
+                ),
+              ],
             ),
           ),
         ),
