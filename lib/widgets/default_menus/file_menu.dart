@@ -1,6 +1,24 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
-//TODO Cambiar en el constructor a additionalItems y poner unos items por defecto
+// TODO Emojis
 class DefaultFileMenu extends PlatformMenu {
-  DefaultFileMenu({required super.label, required super.menus});
+  DefaultFileMenu({
+    VoidCallback? onCloseWindow,
+    Intent? onCloseWindowIntent,
+    List<PlatformMenuItem>? additionalItems,
+  }) : super(
+         label: 'File',
+         menus: [
+           ...?additionalItems,
+           PlatformMenuItem(
+             label: 'Close Window',
+             onSelectedIntent: onCloseWindowIntent,
+             onSelected: onCloseWindow,
+             shortcut: (onCloseWindow != null && onCloseWindowIntent == null)
+                 ? SingleActivator(LogicalKeyboardKey.keyW, meta: true)
+                 : null,
+           ),
+         ],
+       );
 }

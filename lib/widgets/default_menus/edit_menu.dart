@@ -184,7 +184,7 @@ class DefaultEditMenu extends PlatformMenu {
         onSelected: onShowKeyboard,
         onSelectedIntent: onShowKeyboardIntent,
       ),
-      if (additionalItems != null) ...additionalItems,
+      ...?additionalItems,
     ],
   );
 }
