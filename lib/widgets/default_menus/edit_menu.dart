@@ -3,6 +3,10 @@ import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 // TODO: Shortcuts & Emojis
 class DefaultEditMenu extends DefaultIpadMenu {
+
+  @override
+  String get menuId => 'edit';
+
   DefaultEditMenu({
     // Undo / Redo
     VoidCallback? onUndo,

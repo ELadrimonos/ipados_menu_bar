@@ -4,6 +4,9 @@ import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 // TODO Emojis
 class DefaultFileMenu extends DefaultIpadMenu {
+  @override
+  String get menuId => 'file';
+
   DefaultFileMenu({
     VoidCallback? onCloseWindow,
     Intent? onCloseWindowIntent,

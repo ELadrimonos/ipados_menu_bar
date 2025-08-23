@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart';
+import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 /// iPadOS exclusive channels
 const String _kMenuSetMethod = 'Menu.setMenus';
@@ -16,8 +17,8 @@ const String _kMenuItemClosedMethod = 'Menu.closed';
 
 class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   IpadOSPlatformMenuDelegate({MethodChannel? channel})
-    : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
-      _idMap = <int, PlatformMenuItem>{} {
+      : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
+        _idMap = <int, PlatformMenuItem>{} {
     this.channel.setMethodCallHandler(_methodCallHandler);
   }
 
@@ -25,6 +26,10 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   final Map<int, PlatformMenuItem> _idMap;
   int _serial = 0;
   BuildContext? _lockedContext;
+
+  // Track which default menus are present
+  final Set<String> _presentDefaultMenus = <String>{};
+  final Map<String, List<Map<String, Object?>>> _defaultMenuItems = <String, List<Map<String, Object?>>>{};
 
   @override
   void clearMenus() => setMenus(<PlatformMenuItem>[]);
@@ -38,20 +43,50 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     }
 
     _idMap.clear();
-    final List<Map<String, Object?>> representation = <Map<String, Object?>>[];
+    _presentDefaultMenus.clear();
+    _defaultMenuItems.clear();
+
+    final List<Map<String, Object?>> customMenus = <Map<String, Object?>>[];
 
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
         if (kDebugMode) debugPrint("Processing menu: ${childItem.label}");
-        representation.addAll(_customToChannelRepresentation(childItem));
+
+        if (childItem is DefaultIpadMenu) {
+          // This is a default menu, track it and store its items
+          _presentDefaultMenus.add(childItem.menuId);
+          _defaultMenuItems[childItem.menuId] = _getChildrenRepresentation(childItem.menus);
+          if (kDebugMode) debugPrint("Found default menu: ${childItem.menuId}");
+        } else {
+          // This is a custom menu
+          customMenus.addAll(_customToChannelRepresentation(childItem));
+        }
       }
     }
 
-    final Map<String, Object?> windowMenu = <String, Object?>{
-      '0': representation,
+    // Send both custom menus and default menu configuration
+    final Map<String, Object?> payload = <String, Object?>{
+      'customMenus': customMenus,
+      'defaultMenus': _presentDefaultMenus.toList(),
+      'defaultMenuItems': _defaultMenuItems,
     };
-    if (kDebugMode) debugPrint("Sending menu representation: $windowMenu");
-    channel.invokeMethod<void>(_kMenuSetMethod, windowMenu);
+
+    if (kDebugMode) {
+      debugPrint("Sending menu payload:");
+      debugPrint("- Custom menus: ${customMenus.length}");
+      debugPrint("- Present default menus: $_presentDefaultMenus");
+      debugPrint("- Default menu items: ${_defaultMenuItems.keys}");
+    }
+
+    channel.invokeMethod<void>(_kMenuSetMethod, payload);
+  }
+
+  List<Map<String, Object?>> _getChildrenRepresentation(List<PlatformMenuItem> items) {
+    final List<Map<String, Object?>> result = <Map<String, Object?>>[];
+    for (final PlatformMenuItem item in items) {
+      result.addAll(_customToChannelRepresentation(item));
+    }
+    return result;
   }
 
   int _getId(PlatformMenuItem item) {
@@ -61,8 +96,8 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   List<Map<String, Object?>> _customToChannelRepresentation(
-    PlatformMenuItem item,
-  ) {
+      PlatformMenuItem item,
+      ) {
     final List<Map<String, Object?>> result = [];
 
     if (item is PlatformMenu) {
@@ -77,7 +112,7 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'children': children,
       });
     } else if (item is PlatformMenuItemGroup) {
-      /// A group is traslated as "divider/group" in UIKit
+      /// A group is translated as "divider/group" in UIKit
       final List<Map<String, Object?>> groupChildren = [];
       for (final member in item.members) {
         groupChildren.addAll(_customToChannelRepresentation(member));
@@ -171,11 +206,11 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     }
   }
 
+  // Legacy method kept for compatibility - now deprecated
+  @Deprecated('Use DefaultPlatformMenu classes in the widget tree instead')
   Future<void> configureDefaultMenus(Map<String, dynamic> config) async {
-    try {
-      await channel.invokeMethod<void>('Menu.configureDefaultMenus', config);
-    } catch (e) {
-      if (kDebugMode) debugPrint('Error configuring default menus: $e');
+    if (kDebugMode) {
+      debugPrint('configureDefaultMenus is deprecated. Use DefaultPlatformMenu classes instead.');
     }
   }
 

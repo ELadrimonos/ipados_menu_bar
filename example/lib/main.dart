@@ -58,6 +58,8 @@ class _MyAppState extends State<MyApp> {
         ),
         child: PlatformMenuBar(
           menus: [
+            DefaultEditMenu(),
+            DefaultFileMenu(),
             PlatformMenu(
               label: 'Test Menu',
               menus: [
@@ -111,12 +113,8 @@ class _MyAppState extends State<MyApp> {
             ),
           ],
           child: Center(
-            child: Column(
-              children: [
-                Text(
-                  "Swipe down from the top of the screen to see the magic happen",
-                ),
-              ],
+            child: Text(
+              "Swipe down from the top of the screen to see the magic happen",
             ),
           ),
         ),

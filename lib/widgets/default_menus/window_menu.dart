@@ -7,6 +7,10 @@ import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 /// Only use for callbacks when user switches layout, switches screen or
 /// creates a new window.
 class DefaultWindowMenu extends DefaultIpadMenu {
+
+  @override
+  String get menuId => 'window';
+
   DefaultWindowMenu()
     : super(label: 'Window', menus: [
       PlatformMenuItemGroup(members: [

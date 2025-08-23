@@ -3,5 +3,9 @@ import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 //TODO Cambiar en el constructor a additionalItems y poner unos items por defecto
 class DefaultViewMenu extends DefaultIpadMenu {
+
+  @override
+  String get menuId => 'view';
+
   DefaultViewMenu({required super.label, required super.menus});
 }
