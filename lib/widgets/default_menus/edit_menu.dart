@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 // TODO: Shortcuts & Emojis
-class DefaultEditMenu extends PlatformMenu {
+class DefaultEditMenu extends DefaultIpadMenu {
   DefaultEditMenu({
     // Undo / Redo
     VoidCallback? onUndo,

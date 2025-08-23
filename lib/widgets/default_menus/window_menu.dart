@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 // Note: This will be trickier to accomplish, as it has to respect the OS behavior,
 // only adding upon listeners
 
 /// Only use for callbacks when user switches layout, switches screen or
 /// creates a new window.
-class DefaultWindowMenu extends PlatformMenu {
+class DefaultWindowMenu extends DefaultIpadMenu {
   DefaultWindowMenu()
     : super(label: 'Window', menus: [
       PlatformMenuItemGroup(members: [

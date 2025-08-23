@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 // TODO Emojis
-class DefaultFileMenu extends PlatformMenu {
+class DefaultFileMenu extends DefaultIpadMenu {
   DefaultFileMenu({
     VoidCallback? onCloseWindow,
     Intent? onCloseWindowIntent,
