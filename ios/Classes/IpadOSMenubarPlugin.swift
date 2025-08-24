@@ -175,29 +175,35 @@ extension IpadOSMenubarPlugin {
 
         let menuElements = buildMenuElements(from: items)
 
-        if !menuElements.isEmpty {
-            let customMenu = UIMenu(
-                title: "",
-                options: [.displayInline],
-                children: menuElements
-            )
+        guard !menuElements.isEmpty else { return }
 
-            switch menuId {
-            case "file":
-                builder.insertChild(customMenu, atStartOfMenu: .file)
-            case "edit":
-                builder.insertChild(customMenu, atStartOfMenu: .edit)
-            case "format":
-                builder.insertChild(customMenu, atStartOfMenu: .format)
-            case "view":
-                builder.insertChild(customMenu, atStartOfMenu: .view)
-            case "window":
-                builder.insertChild(customMenu, atStartOfMenu: .window)
-            case "help":
-                builder.insertChild(customMenu, atStartOfMenu: .help)
-            default:
-                print("Unknown default menu ID: \(menuId)")
-            }
+        let customMenu = UIMenu(
+            title: "",
+            options: [.displayInline],
+            children: menuElements
+        )
+
+        switch menuId {
+
+        // Have items with important native code, just add new items (for now)
+        case "file":
+            builder.insertChild(customMenu, atStartOfMenu: .file)
+        case "window":
+        // TODO add listeners to the items, maybe getting the children
+            builder.insertChild(customMenu, atStartOfMenu: .window)
+        case "help":
+            builder.insertChild(customMenu, atStartOfMenu: .help)
+
+        // In these cases, as there are no important predefined native functions, we replace all
+        // their items to the ones made in dart
+        case "edit":
+            builder.replaceChildren(ofMenu: .edit) { _ in customMenu.children }
+        case "format":
+            builder.replaceChildren(ofMenu: .format) { _ in customMenu.children }
+        case "view":
+            builder.replaceChildren(ofMenu: .view) { _ in customMenu.children }
+        default:
+            print("Unknown default menu ID: \(menuId)")
         }
     }
 

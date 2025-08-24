@@ -12,11 +12,7 @@ const String _kMenuSelectedCallbackMethod = 'Menu.selectedCallback';
 const String _kMenuItemOpenedMethod = 'Menu.opened';
 const String _kMenuItemClosedMethod = 'Menu.closed';
 
-// TODO Access the default items as PlatformMenu widgets and customize them
-//  using a dictionary with their IDs and allow
-//  linking default menu items to actions inside dart code
-//  or just be able to assign callbacks using a predefined class
-
+// TODO add shortcuts to dart items
 class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   IpadOSPlatformMenuDelegate({MethodChannel? channel})
     : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
