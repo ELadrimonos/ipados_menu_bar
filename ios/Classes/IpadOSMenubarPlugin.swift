@@ -3,8 +3,10 @@ import UIKit
 
 public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     private var channel: FlutterMethodChannel!
-    private var menuModel: [[String: Any]] = []
-    private var defaultMenusConfig: [String: Any] = [:]
+    private var customMenus: [[String: Any]] = []
+    private var presentDefaultMenus: [String] = []
+    private var defaultMenuItems: [String: [[String: Any]]] = [:]
+
     public static var shared: IpadOSMenubarPlugin?
     private var menuBuilderDelegate: MenuBuilderDelegate?
 
@@ -19,7 +21,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         IpadOSMenubarPlugin.shared = instance
         instance.setupMenuDelegate()
 
-        print("IpadOs26MenubarPlugin registered successfully")
+        print("IpadOSMenubarPlugin registered successfully")
     }
 
     private func setupMenuDelegate() {
@@ -33,11 +35,23 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
 
         switch call.method {
         case "Menu.setMenus":
-            if let args = call.arguments as? [String: Any],
-                let menus = args["0"] as? [[String: Any]]
-            {
-                print("Received custom menus: \(menus)")
-                self.menuModel = menus
+            if let args = call.arguments as? [String: Any] {
+                print("Received menu data: \(args)")
+
+                if let customMenusData = args["customMenus"] as? [[String: Any]] {
+                    self.customMenus = customMenusData
+                    print("Custom menus: \(customMenusData.count)")
+                }
+
+                if let defaultMenusData = args["defaultMenus"] as? [String] {
+                    self.presentDefaultMenus = defaultMenusData
+                    print("Present default menus: \(defaultMenusData)")
+                }
+
+                if let defaultItemsData = args["defaultMenuItems"] as? [String: [[String: Any]]] {
+                    self.defaultMenuItems = defaultItemsData
+                    print("Default menu items keys: \(defaultItemsData.keys)")
+                }
 
                 DispatchQueue.main.async {
                     self.rebuildMenus()
@@ -45,19 +59,6 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
                 result(nil)
             } else {
                 result(FlutterError(code: "bad_args", message: "Invalid arguments", details: nil))
-            }
-
-        case "Menu.configureDefaultMenus":
-            if let config = call.arguments as? [String: Any] {
-                print("Received default menus config: \(config)")
-                self.defaultMenusConfig = config
-
-                DispatchQueue.main.async {
-                    self.rebuildMenus()
-                }
-                result(nil)
-            } else {
-                result(FlutterError(code: "bad_args", message: "Invalid config", details: nil))
             }
 
         case "Menu.getAvailableDefaultMenus":
@@ -70,6 +71,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
                 "help": "Help Menu",
             ]
             result(availableMenus)
+
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -81,16 +83,24 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         NotificationCenter.default.post(
             name: NSNotification.Name("FlutterMenusChanged"),
             object: self,
-            userInfo: ["menus": menuModel, "defaultConfig": defaultMenusConfig]
+            userInfo: [
+                "customMenus": customMenus,
+                "presentDefaultMenus": presentDefaultMenus,
+                "defaultMenuItems": defaultMenuItems,
+            ]
         )
     }
 
-    public func currentMenus() -> [[String: Any]] {
-        return menuModel
+    public func getCustomMenus() -> [[String: Any]] {
+        return customMenus
     }
 
-    public func getDefaultMenusConfig() -> [String: Any] {
-        return defaultMenusConfig
+    public func getPresentDefaultMenus() -> [String] {
+        return presentDefaultMenus
+    }
+
+    public func getDefaultMenuItems() -> [String: [[String: Any]]] {
+        return defaultMenuItems
     }
 
     public func performAction(id: Int) {
@@ -135,123 +145,88 @@ extension IpadOSMenubarPlugin {
     func buildAllMenus(with builder: UIMenuBuilder) {
         print("Building all menus...")
 
+        // Configure default menus based on what's present in the widget tree
         configureDefaultMenus(with: builder)
 
+        // Build custom menus
         buildCustomMenus(with: builder)
+
+        // Hide menus that are not present in the widget tree
+        hideAbsentDefaultMenus(with: builder)
     }
 
     private func configureDefaultMenus(with builder: UIMenuBuilder) {
-        let config = getDefaultMenusConfig()
-        print("Configuring default menus with config: \(config)")
+        let presentMenus = getPresentDefaultMenus()
+        let menuItems = getDefaultMenuItems()
 
-        if let fileConfig = config["file"] as? [String: Any] {
-            configureFileMenu(with: builder, config: fileConfig)
-        }
+        print("Configuring default menus. Present: \(presentMenus)")
 
-        if let editConfig = config["edit"] as? [String: Any] {
-            configureEditMenu(with: builder, config: editConfig)
-        }
-
-        if let formatConfig = config["format"] as? [String: Any] {
-            configureFormatMenu(with: builder, config: formatConfig)
-        }
-
-        if let viewConfig = config["view"] as? [String: Any] {
-            configureViewMenu(with: builder, config: viewConfig)
-        }
-
-        if let windowConfig = config["window"] as? [String: Any] {
-            configureWindowMenu(with: builder, config: windowConfig)
-        }
-
-        if let helpConfig = config["help"] as? [String: Any] {
-            configureHelpMenu(with: builder, config: helpConfig)
-        }
-
-        // Handle menus that want to be hidden
-        if let hiddenMenus = config["hidden"] as? [String] {
-            for menuId in hiddenMenus {
-                hideDefaultMenu(with: builder, menuId: menuId)
+        for menuId in presentMenus {
+            if let items = menuItems[menuId] {
+                configureDefaultMenu(with: builder, menuId: menuId, items: items)
             }
         }
     }
 
-    private func configureFileMenu(with builder: UIMenuBuilder, config: [String: Any]) {
-        if let additionalItems = config["additionalItems"] as? [[String: Any]] {
-            let fileMenuElements = buildMenuElements(from: additionalItems)
+    private func configureDefaultMenu(
+        with builder: UIMenuBuilder, menuId: String, items: [[String: Any]]
+    ) {
+        print("Configuring \(menuId) menu with \(items.count) items")
 
-            if !fileMenuElements.isEmpty {
-                let customFileMenu = UIMenu(
-                    title: "", options: [.displayInline], children: fileMenuElements)
-                builder.insertChild(customFileMenu, atStartOfMenu: .file)
-            }
+        let menuElements = buildMenuElements(from: items)
+
+        guard !menuElements.isEmpty else { return }
+
+        let customMenu = UIMenu(
+            title: "",
+            options: [.displayInline],
+            children: menuElements
+        )
+
+        switch menuId {
+
+        // Have items with important native code, just add new items (for now)
+        case "file":
+            builder.insertChild(customMenu, atStartOfMenu: .file)
+        case "window":
+        // TODO add listeners to the items, maybe getting the children
+            builder.insertChild(customMenu, atStartOfMenu: .window)
+        case "help":
+            builder.insertChild(customMenu, atStartOfMenu: .help)
+
+        // In these cases, as there are no important predefined native functions, we replace all
+        // their items to the ones made in dart
+        case "edit":
+            builder.replaceChildren(ofMenu: .edit) { _ in customMenu.children }
+        case "format":
+            builder.replaceChildren(ofMenu: .format) { _ in customMenu.children }
+        case "view":
+            builder.replaceChildren(ofMenu: .view) { _ in customMenu.children }
+        default:
+            print("Unknown default menu ID: \(menuId)")
         }
     }
 
-    private func configureEditMenu(with builder: UIMenuBuilder, config: [String: Any]) {
-        if let additionalItems = config["additionalItems"] as? [[String: Any]] {
-            let editMenuElements = buildMenuElements(from: additionalItems)
+    private func hideAbsentDefaultMenus(with builder: UIMenuBuilder) {
+        let presentMenus = Set(getPresentDefaultMenus())
+        let allDefaultMenus: Set<String> = ["file", "edit", "format", "view", "toolbar"]
 
-            if !editMenuElements.isEmpty {
-                let customEditMenu = UIMenu(
-                    title: "", options: [.displayInline], children: editMenuElements)
-                builder.insertChild(customEditMenu, atStartOfMenu: .edit)
-            }
-        }
-    }
+        // Hide menus that are not present in the widget tree
+        let menusToHide = allDefaultMenus.subtracting(presentMenus)
 
-    private func configureFormatMenu(with builder: UIMenuBuilder, config: [String: Any]) {
-        if let additionalItems = config["additionalItems"] as? [[String: Any]] {
-            let formatMenuElements = buildMenuElements(from: additionalItems)
+        print("Hiding absent default menus: \(menusToHide)")
 
-            if !formatMenuElements.isEmpty {
-                let customFormatMenu = UIMenu(
-                    title: "", options: [.displayInline], children: formatMenuElements)
-                builder.insertChild(customFormatMenu, atStartOfMenu: .format)
-            }
-        }
-    }
-
-    private func configureViewMenu(with builder: UIMenuBuilder, config: [String: Any]) {
-        if let additionalItems = config["additionalItems"] as? [[String: Any]] {
-            let viewMenuElements = buildMenuElements(from: additionalItems)
-
-            if !viewMenuElements.isEmpty {
-                let customViewMenu = UIMenu(
-                    title: "", options: [.displayInline], children: viewMenuElements)
-                builder.insertChild(customViewMenu, atStartOfMenu: .view)
-            }
-        }
-    }
-
-    private func configureWindowMenu(with builder: UIMenuBuilder, config: [String: Any]) {
-        if let additionalItems = config["additionalItems"] as? [[String: Any]] {
-            let windowMenuElements = buildMenuElements(from: additionalItems)
-
-            if !windowMenuElements.isEmpty {
-                let customWindowMenu = UIMenu(
-                    title: "", options: [.displayInline], children: windowMenuElements)
-                builder.insertChild(customWindowMenu, atStartOfMenu: .window)
-            }
-        }
-    }
-
-    private func configureHelpMenu(with builder: UIMenuBuilder, config: [String: Any]) {
-        if let additionalItems = config["additionalItems"] as? [[String: Any]] {
-            let helpMenuElements = buildMenuElements(from: additionalItems)
-
-            if !helpMenuElements.isEmpty {
-                let customHelpMenu = UIMenu(
-                    title: "", options: [.displayInline], children: helpMenuElements)
-                builder.insertChild(customHelpMenu, atStartOfMenu: .help)
-            }
+        for menuId in menusToHide {
+            hideDefaultMenu(with: builder, menuId: menuId)
         }
     }
 
     private func buildCustomMenus(with builder: UIMenuBuilder) {
         print("Building custom Flutter menus...")
 
-        for menuData in menuModel {
+        let customMenus = getCustomMenus()
+
+        for menuData in customMenus {
             guard let title = menuData["label"] as? String,
                 let children = menuData["children"] as? [[String: Any]]
             else {
@@ -275,7 +250,6 @@ extension IpadOSMenubarPlugin {
 
     private func insertCustomMenuInCorrectPosition(builder: UIMenuBuilder, menu: UIMenu) -> Bool {
         // Correct order based on Apple HIG: AppInfo, File, Edit, Format, View, [CUSTOM], Window, Help
-        // https://developer.apple.com/videos/play/wwdc2025/208/?time=648
 
         // First try after the View menu
         if builder.menu(for: .view) != nil {
@@ -316,7 +290,7 @@ extension IpadOSMenubarPlugin {
         return false
     }
 
-    // Never allow to hide important items such as AppInfo, Window and Help
+    // Only allow hiding certain menus. AppInfo, Window and Help are protected
     private func hideDefaultMenu(with builder: UIMenuBuilder, menuId: String) {
         switch menuId {
         case "file":
@@ -356,6 +330,8 @@ extension IpadOSMenubarPlugin {
 
             let enabled = childData["enabled"] as? Bool ?? true
 
+            let iconImage = createImageFromBytes(childData["iconBytes"])
+
             if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty
             {
                 let submenuElements = buildMenuElements(from: grandchildren)
@@ -363,6 +339,7 @@ extension IpadOSMenubarPlugin {
                 if !submenuElements.isEmpty {
                     let submenu = UIMenu(
                         title: title,
+                        image: iconImage,
                         options: enabled ? [] : [.displayInline],
                         children: submenuElements
                     )
@@ -371,6 +348,7 @@ extension IpadOSMenubarPlugin {
             } else {
                 let action = UIAction(
                     title: title,
+                    image: iconImage,
                     attributes: enabled ? [] : [.disabled]
                 ) { [weak self] _ in
                     print("Menu action selected: \(title) (id: \(id))")
@@ -382,4 +360,47 @@ extension IpadOSMenubarPlugin {
 
         return elements
     }
+
+    private func createImageFromBytes(_ iconBytesData: Any?) -> UIImage? {
+        guard let iconBytes = iconBytesData as? FlutterStandardTypedData else {
+            return nil
+        }
+
+        let data = Data(iconBytes.data)
+        guard let image = UIImage(data: data) else {
+            return nil
+        }
+
+        let templateImage = image.withRenderingMode(.alwaysTemplate)
+
+        // 14 seems very close to the native icon size
+        let targetSize = CGSize(width: 14, height: 14)
+
+        UIGraphicsBeginImageContextWithOptions(targetSize, false, 0.0)
+
+        UIColor.label.setFill()
+
+        templateImage.draw(in: CGRect(origin: .zero, size: targetSize))
+
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return resizedImage?.withRenderingMode(.alwaysTemplate)
+    }
+
+    private func createSystemColoredImage(from originalImage: UIImage?) -> UIImage? {
+        guard let image = originalImage else { return nil }
+
+        return image.withTintColor(.label, renderingMode: .alwaysTemplate)
+    }
+
+    private func resizeImageWithQuality(_ image: UIImage?, targetSize: CGSize) -> UIImage? {
+        guard let image = image else { return nil }
+
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }
+
 }
