@@ -46,7 +46,7 @@ Add `ipados_menu_bar` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ipados_menu_bar: ^0.0.3
+  ipados_menu_bar: ^0.1.0
 ```
 
 Then run:
@@ -80,12 +80,17 @@ class MyApp extends StatelessWidget {
       home: PlatformMenuBar(
         menus: [
           // Your custom menus here
+          DefaultEditMenu(
+              onUndo: () => debugPrint('Undo action!'),
+              onRedo: () => debugPrint('Redo action!'),
+          ),
           PlatformMenu(
-            label: 'Actions',
+            label: 'Normal Actions',
             menus: [
               PlatformMenuItemGroup(
                 members: [
-                  PlatformMenuItem(
+                  PlatformMenuItemWithIcon(
+                    icon: CupertinoIcons.plus_app,
                     label: 'New Document',
                     onSelected: () {
                       // Handle action
@@ -98,6 +103,24 @@ class MyApp extends StatelessWidget {
                     },
                   ),
                 ],
+              ),
+              PlatformMenuItemGroup(
+                members: [
+                  PlatformMenuWithIcon(
+                    icon: CupertinoIcons.folder,
+                    label: "Recent Documents",
+                    menus: [
+                      PlatformMenuItem(
+                        label: 'Shopping list',
+                        onSelected: () => debugPrint("Carrots, popcorn, water..."),
+                      ),
+                      // Disabled (onSelected is null)
+                      PlatformMenuItem(
+                        label: 'Family secrets',
+                      ),
+                    ],
+                  ),
+                ]
               ),
             ],
           ),
@@ -116,30 +139,6 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-### Advanced Configuration
-
-You can customize default menu items behavior using the `configureDefaultMenus` method:
-
-```dart
-// Get instance of the Menu Delegate
-_menuDelegate = WidgetsBinding.instance.platformMenuDelegate as IpadOSPlatformMenuDelegate;
-
-// Hide default menus
-await _menuDelegate.configureDefaultMenus({
-    'hidden': ['format', 'edit'],
-});
-
-// Add custom items to the default iOS menu items
-await _menuDelegate.configureDefaultMenus({
-    'file': {
-        'additionalItems': [
-          {'id': 100, 'label': 'New Special File', 'enabled': true},
-          {'id': 101, 'label': 'Open Special File', 'enabled': true},
-        ],
-    },
-});
-```
-
 ## 🎛️ Customization Options
 
 ### Hidden Default Menus
@@ -151,26 +150,22 @@ The package allows you to hide default system menu items that come with iPadOS:
 - **Format**: Hide text formatting options
 - **View**: Hide view-related controls
 
-You can customize default menu items behavior using the configureDefaultMenus method:
+These menus will be automatically hidden when there's a `PlatformMenuBar`on the current context and 
+haven't been placed in the widget tree:
 
 ```dart
-// Get instance of the Menu Delegate
-_menuDelegate = WidgetsBinding.instance.platformMenuDelegate as IpadOSPlatformMenuDelegate;
 
-// Hide default menus
-await _menuDelegate.configureDefaultMenus({
-    'hidden': ['format', 'edit'],
-});
+PlatformMenuBar(
+    menus: [
+        // File and Format will be hidden
+        DefaultEditMenu(
+            onUndo: () => debugPrint('Undo action!'),
+            onRedo: () => debugPrint('Redo action!'),
+        ),
+        DefaultViewMenu(),
+    ],
+)
 
-// Add custom items to the default iOS menu items
-await _menuDelegate.configureDefaultMenus({
-    'file': {
-        'additionalItems': [
-          {'id': 100, 'label': 'New Special File', 'enabled': true},
-          {'id': 101, 'label': 'Open Special File', 'enabled': true},
-        ],
-    },
-});
 ```
 
 ### Disable Menu Items
@@ -187,7 +182,8 @@ PlatformMenuItem(
 ),
 ```
 
-This is handful when changing contexts, like opening a modal.
+This is handful when changing contexts, like opening a modal, and don't want the 
+user to do unexpected stuff.
 
 ### Menu Structure
 
@@ -195,6 +191,18 @@ Create organized menu hierarchies with:
 - `PlatformMenu`: Top-level menu categories
 - `PlatformMenuItemGroup`: Grouped menu items with separators
 - `PlatformMenuItem`: Individual menu actions with optional keyboard shortcuts
+- `PlatformMenuWithIcon`: Menu categories with a leading icon
+- `PlatformMenuItemWithIcon`: Individual menu actions with a leading action
+- *Default menu items*: Apple's top-level menu categories with their corresponding items and listeners
+  - `DefaultFileMenu`: Items file-related using Apple's incorporated item with callbacks for your app functionality
+  and additional custom items
+  - `DefaultEditMenu`: Items for actions on your app using Apple's incorporated item with callbacks for your app f
+  functionality and additional custom items
+  - `DefaultFormatMenu`: Items for formatting text or other data on your app using Apple's incorporated item with 
+  callbacks for your app functionality and additional custom items
+  - `DefaultViewMenu`: Items to switch between screens or other UI-related actions like showing the sidebar
+  - `DefaultWindowMenu`: Listeners for reacting when the window layout changes, a new window is opened, switched screen,
+  etc...
 
 ## 📱 Platform Support
 
@@ -204,16 +212,16 @@ This package is specifically designed for iPadOS 26+ and provides enhanced funct
 
 | Feature | Status |
 |---------|--------|
-| Basic Menu Bar Integration | ✅ |
-| Custom Menu Items | ✅ |
-| Custom Menu Items HIG Placement | ✅ |
-| Hide Default Menus (File, Edit, Format, View) | ✅ |
-| Submenu Nesting | ✅ |
-| Dynamic Menu Updates | ✅ |
-| Menu Separators | ✅ |
-| App Info Custom Children Items | ❌ |
-| Menu Icons Support | ❌ |
-| Default Items Callbacks via Dart | ❌ |
+| Basic Menu Bar Integration | ✅      |
+| Custom Menu Items | ✅      |
+| Custom Menu Items HIG Placement | ✅      |
+| Hide Default Menus (File, Edit, Format, View) | ✅      |
+| Submenu Nesting | ✅      |
+| Dynamic Menu Updates | ✅      |
+| Menu Separators | ✅      |
+| App Info Custom Children Items | ❌      |
+| Menu Icons Support | ✅      |
+| Default Items Callbacks via Dart | 🚧     |
 
 ## ⚠️ API Stability Notice
 

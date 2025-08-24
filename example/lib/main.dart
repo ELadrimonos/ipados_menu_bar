@@ -34,8 +34,9 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _configureDefaultMenus() async {
     // Deprecated method, start working with the new widgets
+    /*
     await _menuDelegate.configureDefaultMenus({
-      /*      'file': {
+            'file': {
         'additionalItems': [
           {'id': 100, 'label': 'Mi Nuevo Archivo', 'enabled': true},
           {'id': 101, 'label': 'Mi Abrir Especial', 'enabled': true},
@@ -45,9 +46,10 @@ class _MyAppState extends State<MyApp> {
         'additionalItems': [
           {'id': 102, 'label': 'Mi Función Personalizada', 'enabled': true},
         ],
-      },*/
+      },
       'hidden': [],
     });
+    */
   }
 
   @override
@@ -59,7 +61,10 @@ class _MyAppState extends State<MyApp> {
         ),
         child: PlatformMenuBar(
           menus: [
-            DefaultEditMenu(),
+            DefaultEditMenu(
+              onUndo: () => debugPrint('Undo action!'),
+              onRedo: () => debugPrint('Redo action!'),
+            ),
             DefaultFileMenu(),
             DefaultWindowMenu(),
             DefaultViewMenu(),
@@ -67,7 +72,7 @@ class _MyAppState extends State<MyApp> {
               label: 'Test Menu',
               menus: [
                 PlatformMenuItemWithIcon(
-                  icon: CupertinoIcons.add,
+                  icon: CupertinoIcons.plus,
                   label: 'Item 0 (Enabled: $toggledOption)',
                   onSelected: toggledOption
                       ? () => debugPrint("Item 0 selected")
