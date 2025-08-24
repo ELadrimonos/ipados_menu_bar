@@ -210,18 +210,19 @@ This package is specifically designed for iPadOS 26+ and provides enhanced funct
 
 ## 🔧 Feature Roadmap
 
-| Feature | Status |
-|---------|--------|
-| Basic Menu Bar Integration | ✅      |
-| Custom Menu Items | ✅      |
-| Custom Menu Items HIG Placement | ✅      |
+| Feature                                       | Status |
+|-----------------------------------------------|--------|
+| Basic Menu Bar Integration                    | ✅      |
+| Custom Menu Items                             | ✅      |
+| Custom Menu Items HIG Placement               | ✅      |
 | Hide Default Menus (File, Edit, Format, View) | ✅      |
-| Submenu Nesting | ✅      |
-| Dynamic Menu Updates | ✅      |
-| Menu Separators | ✅      |
-| App Info Custom Children Items | ❌      |
-| Menu Icons Support | ✅      |
-| Default Items Callbacks via Dart | 🚧     |
+| Submenu Nesting                               | ✅      |
+| Dynamic Menu Updates                          | ✅      |
+| Menu Separators                               | ✅      |
+| App Info Custom Children Items                | ❌      |
+| Menu Icons Support                            | ✅      |
+| Default Items Callbacks via Dart              | 🚧     |
+| Keyboard Shortcuts                            | 🚧     |
 
 ## ⚠️ API Stability Notice
 
