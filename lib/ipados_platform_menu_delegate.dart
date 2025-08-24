@@ -53,7 +53,7 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       for (final PlatformMenuItem childItem in topLevelMenus) {
         if (kDebugMode) debugPrint("Processing menu: ${childItem.label}");
 
-        if (childItem is DefaultIpadMenu) {
+        if (childItem is IPadMenu) {
           _presentDefaultMenus.add(childItem.menuId);
           final menuItems = _getChildrenRepresentation(childItem.menus);
           await _processIconsAndSetMenus(menuItems);

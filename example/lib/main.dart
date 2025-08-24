@@ -61,13 +61,14 @@ class _MyAppState extends State<MyApp> {
         ),
         child: PlatformMenuBar(
           menus: [
-            DefaultEditMenu(
+            IPadEditMenu(
               onUndo: () => debugPrint('Undo action!'),
               onRedo: () => debugPrint('Redo action!'),
             ),
-            DefaultFileMenu(),
-            DefaultWindowMenu(),
-            DefaultViewMenu(),
+            IPadFileMenu(),
+            IPadWindowMenu(),
+            IPadViewMenu(),
+            IPadFormatMenu(),
             PlatformMenu(
               label: 'Test Menu',
               menus: [

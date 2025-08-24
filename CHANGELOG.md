@@ -1,11 +1,11 @@
 ## 0.1.0
 
 * Default menus now work like the classic PlatformMenu widgets and are configured at the widget tree.
-  * `DefaultFileMenu`
-  * `DefaultEditMenu`
-  * `DefaultFormatMenu`
-  * `DefaultViewMenu`
-  * `DefaultWindowMenu`
+  * `IPadFileMenu`
+  * `IPadEditMenu`
+  * `IPadFormatMenu`
+  * `IPadViewMenu`
+  * `IPadWindowMenu`
 * `PlatformMenuItemWithIcon` and `PlatformMenuWithIcon` to pass `IconData` to menu items
 
 ## 0.0.3

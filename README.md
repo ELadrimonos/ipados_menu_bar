@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget {
       home: PlatformMenuBar(
         menus: [
           // Your custom menus here
-          DefaultEditMenu(
+          IPadEditMenu(
               onUndo: () => debugPrint('Undo action!'),
               onRedo: () => debugPrint('Redo action!'),
           ),
@@ -158,11 +158,11 @@ haven't been placed in the widget tree:
 PlatformMenuBar(
     menus: [
         // File and Format will be hidden
-        DefaultEditMenu(
+        IPadEditMenu(
             onUndo: () => debugPrint('Undo action!'),
             onRedo: () => debugPrint('Redo action!'),
         ),
-        DefaultViewMenu(),
+        IPadViewMenu(),
     ],
 )
 
@@ -194,14 +194,14 @@ Create organized menu hierarchies with:
 - `PlatformMenuWithIcon`: Menu categories with a leading icon
 - `PlatformMenuItemWithIcon`: Individual menu actions with a leading action
 - *Default menu items*: Apple's top-level menu categories with their corresponding items and listeners
-  - `DefaultFileMenu`: Items file-related using Apple's incorporated item with callbacks for your app functionality
+  - `IPadFileMenu`: Items file-related using Apple's incorporated item with callbacks for your app functionality
   and additional custom items
-  - `DefaultEditMenu`: Items for actions on your app using Apple's incorporated item with callbacks for your app f
+  - `IPadEditMenu`: Items for actions on your app using Apple's incorporated item with callbacks for your app f
   functionality and additional custom items
-  - `DefaultFormatMenu`: Items for formatting text or other data on your app using Apple's incorporated item with 
+  - `IPadFormatMenu`: Items for formatting text or other data on your app using Apple's incorporated item with 
   callbacks for your app functionality and additional custom items
-  - `DefaultViewMenu`: Items to switch between screens or other UI-related actions like showing the sidebar
-  - `DefaultWindowMenu`: Listeners for reacting when the window layout changes, a new window is opened, switched screen,
+  - `IPadViewMenu`: Items to switch between screens or other UI-related actions like showing the sidebar
+  - `IPadWindowMenu`: Listeners for reacting when the window layout changes, a new window is opened, switched screen,
   etc...
 
 ## 📱 Platform Support

@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
-// TODO Emojis
-class DefaultFileMenu extends DefaultIpadMenu {
+class IPadFileMenu extends IPadMenu {
   @override
   String get menuId => 'file';
 
-  DefaultFileMenu({
+  IPadFileMenu({
     VoidCallback? onCloseWindow,
     Intent? onCloseWindowIntent,
     List<PlatformMenuItem>? additionalItems,
@@ -15,7 +15,8 @@ class DefaultFileMenu extends DefaultIpadMenu {
          label: 'File',
          menus: [
            ...?additionalItems,
-           PlatformMenuItem(
+           PlatformMenuItemWithIcon(
+             icon: CupertinoIcons.xmark, // Not same icon as iOS 26 :(
              label: 'Close Window',
              onSelectedIntent: onCloseWindowIntent,
              onSelected: onCloseWindow,
