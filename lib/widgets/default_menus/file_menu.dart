@@ -15,7 +15,8 @@ class IPadFileMenu extends IPadMenu {
          label: 'File',
          menus: [
            ...?additionalItems,
-           PlatformMenuItemWithIcon(
+           // Should be logic only, don't render this item in the future
+           /* PlatformMenuItemWithIcon(
              icon: CupertinoIcons.xmark, // Not same icon as iOS 26 :(
              label: 'Close Window',
              onSelectedIntent: onCloseWindowIntent,
@@ -23,7 +24,7 @@ class IPadFileMenu extends IPadMenu {
              shortcut: (onCloseWindow != null && onCloseWindowIntent == null)
                  ? SingleActivator(LogicalKeyboardKey.keyW, meta: true)
                  : null,
-           ),
+           ), */
          ],
        );
 }

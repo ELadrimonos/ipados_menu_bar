@@ -11,6 +11,7 @@ class IPadWindowMenu extends IPadMenu {
   @override
   String get menuId => 'window';
 
+  // Should be logic only, don't render these items in the future
   IPadWindowMenu()
     : super(label: 'Window', menus: [
       PlatformMenuItemGroup(members: [
