@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart';
+import 'package:ipados_menu_bar/helpers/icon_converter.dart';
+import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 /// iPadOS exclusive channels
@@ -17,8 +19,8 @@ const String _kMenuItemClosedMethod = 'Menu.closed';
 
 class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   IpadOSPlatformMenuDelegate({MethodChannel? channel})
-      : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
-        _idMap = <int, PlatformMenuItem>{} {
+    : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
+      _idMap = <int, PlatformMenuItem>{} {
     this.channel.setMethodCallHandler(_methodCallHandler);
   }
 
@@ -29,17 +31,16 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   // Track which default menus are present
   final Set<String> _presentDefaultMenus = <String>{};
-  final Map<String, List<Map<String, Object?>>> _defaultMenuItems = <String, List<Map<String, Object?>>>{};
+  final Map<String, List<Map<String, Object?>>> _defaultMenuItems =
+      <String, List<Map<String, Object?>>>{};
 
   @override
   void clearMenus() => setMenus(<PlatformMenuItem>[]);
 
   @override
-  void setMenus(List<PlatformMenuItem> topLevelMenus) {
+  void setMenus(List<PlatformMenuItem> topLevelMenus) async {
     if (kDebugMode) {
-      debugPrint(
-        "IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus",
-      );
+      debugPrint("IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus");
     }
 
     _idMap.clear();
@@ -53,18 +54,19 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         if (kDebugMode) debugPrint("Processing menu: ${childItem.label}");
 
         if (childItem is DefaultIpadMenu) {
-          // This is a default menu, track it and store its items
           _presentDefaultMenus.add(childItem.menuId);
-          _defaultMenuItems[childItem.menuId] = _getChildrenRepresentation(childItem.menus);
+          final menuItems = _getChildrenRepresentation(childItem.menus);
+          await _processIconsAndSetMenus(menuItems);
+          _defaultMenuItems[childItem.menuId] = menuItems;
           if (kDebugMode) debugPrint("Found default menu: ${childItem.menuId}");
         } else {
-          // This is a custom menu
-          customMenus.addAll(_customToChannelRepresentation(childItem));
+          final customMenuItems = _customToChannelRepresentation(childItem);
+          await _processIconsAndSetMenus(customMenuItems);
+          customMenus.addAll(customMenuItems);
         }
       }
     }
 
-    // Send both custom menus and default menu configuration
     final Map<String, Object?> payload = <String, Object?>{
       'customMenus': customMenus,
       'defaultMenus': _presentDefaultMenus.toList(),
@@ -72,16 +74,15 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     };
 
     if (kDebugMode) {
-      debugPrint("Sending menu payload:");
-      debugPrint("- Custom menus: ${customMenus.length}");
-      debugPrint("- Present default menus: $_presentDefaultMenus");
-      debugPrint("- Default menu items: ${_defaultMenuItems.keys}");
+      debugPrint("Sending menu payload with processed icons");
     }
 
     channel.invokeMethod<void>(_kMenuSetMethod, payload);
   }
 
-  List<Map<String, Object?>> _getChildrenRepresentation(List<PlatformMenuItem> items) {
+  List<Map<String, Object?>> _getChildrenRepresentation(
+    List<PlatformMenuItem> items,
+  ) {
     final List<Map<String, Object?>> result = <Map<String, Object?>>[];
     for (final PlatformMenuItem item in items) {
       result.addAll(_customToChannelRepresentation(item));
@@ -105,28 +106,28 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       for (final child in item.menus) {
         children.addAll(_customToChannelRepresentation(child));
       }
+
       result.add({
         'id': _getId(item),
         'label': item.label,
         'enabled': true,
         'children': children,
+        'iconData': (item is PlatformMenuWithIcon) ? item.icon : null,
       });
     } else if (item is PlatformMenuItemGroup) {
-      /// A group is translated as "divider/group" in UIKit
       final List<Map<String, Object?>> groupChildren = [];
       for (final member in item.members) {
         groupChildren.addAll(_customToChannelRepresentation(member));
       }
       result.add({'type': 'group', 'children': groupChildren});
     } else {
-      /// Disable item on native side if no method is passed
-      final bool enabled =
-          item.onSelected != null || item.onSelectedIntent != null;
+      final bool enabled = item.onSelected != null || item.onSelectedIntent != null;
 
       final Map<String, Object?> itemMap = {
         'id': _getId(item),
         'label': item.label,
         'enabled': enabled,
+        'iconData': (item is PlatformMenuItemWithIcon) ? item.icon : null,
       };
 
       if (item.members.isNotEmpty) {
@@ -141,6 +142,39 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     }
 
     return result;
+  }
+
+  // Process before sending anything
+  Future<void> _processIconsAndSetMenus(List<Map<String, Object?>> menus) async {
+    for (final menu in menus) {
+      await _processIconsRecursively(menu);
+    }
+  }
+
+  Future<void> _processIconsRecursively(Map<String, Object?> menuItem) async {
+    // Procesar icono del item actual
+    if (menuItem.containsKey('iconData') && menuItem['iconData'] != null) {
+      final iconData = menuItem['iconData'] as IconData;
+
+      final iconBytes = await IconConverter.iconToBytes(
+        iconData,
+        size: 54.0,
+        color: CupertinoColors.black, // Use black color, will be adapted in Swift side
+      );
+
+      if (iconBytes != null) {
+        menuItem['iconBytes'] = iconBytes;
+      }
+      // Remove the iconData dart instance, we now work with bytes
+      menuItem.remove('iconData');
+    }
+
+    if (menuItem.containsKey('children')) {
+      final children = menuItem['children'] as List<Map<String, Object?>>;
+      for (final child in children) {
+        await _processIconsRecursively(child);
+      }
+    }
   }
 
   @override
@@ -210,7 +244,9 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   @Deprecated('Use DefaultPlatformMenu classes in the widget tree instead')
   Future<void> configureDefaultMenus(Map<String, dynamic> config) async {
     if (kDebugMode) {
-      debugPrint('configureDefaultMenus is deprecated. Use DefaultPlatformMenu classes instead.');
+      debugPrint(
+        'configureDefaultMenus is deprecated. Use DefaultPlatformMenu classes instead.',
+      );
     }
   }
 

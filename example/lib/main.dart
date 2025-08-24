@@ -33,8 +33,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _configureDefaultMenus() async {
+    // Deprecated method, start working with the new widgets
     await _menuDelegate.configureDefaultMenus({
-/*      'file': {
+      /*      'file': {
         'additionalItems': [
           {'id': 100, 'label': 'Mi Nuevo Archivo', 'enabled': true},
           {'id': 101, 'label': 'Mi Abrir Especial', 'enabled': true},
@@ -84,16 +85,37 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ],
                 ),
+
+                // NOTE Item 3 is nested in the same group scope as item 0, so it
+                // will have a leading padding because item 0 has an icon.
+                // To counter this behavior, use PlatformMenuItemGroup for each
+                // section.
                 PlatformMenuItem(
                   label: 'Item 3',
                   onSelected: () => debugPrint("Item 3 selected"),
+                ),
+
+                PlatformMenuItemGroup(
+                  members: [
+                    PlatformMenuItem(
+                      label: 'Item 4',
+                      onSelected: () => debugPrint("Item 4 selected"),
+                    ),
+                    PlatformMenuItem(
+                      label: 'Item 5',
+                      onSelected: () => debugPrint("Item 5 selected"),
+                    ),
+                  ],
                 ),
               ],
             ),
             PlatformMenu(
               label: 'Another Test Menu',
               menus: [
-                PlatformMenuItem(
+                PlatformMenuItemWithIcon(
+                  icon: toggledOption
+                      ? CupertinoIcons.checkmark_alt
+                      : CupertinoIcons.xmark,
                   label: 'Toggled: $toggledOption',
                   onSelected: () => setState(() {
                     toggledOption = !toggledOption;

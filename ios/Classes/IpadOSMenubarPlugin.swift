@@ -1,7 +1,6 @@
 import Flutter
 import UIKit
 
-// TODO Investigar UIMenu image para pasar IconData
 public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     private var channel: FlutterMethodChannel!
     private var customMenus: [[String: Any]] = []
@@ -325,26 +324,25 @@ extension IpadOSMenubarPlugin {
 
             let enabled = childData["enabled"] as? Bool ?? true
 
+            let iconImage = createImageFromBytes(childData["iconBytes"])
+
             if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty
             {
                 let submenuElements = buildMenuElements(from: grandchildren)
 
-                // UIImage here for items that open submenus
                 if !submenuElements.isEmpty {
                     let submenu = UIMenu(
                         title: title,
-                        image: UIImage(systemName: "moon"),
-
+                        image: iconImage,
                         options: enabled ? [] : [.displayInline],
                         children: submenuElements
                     )
                     elements.append(submenu)
                 }
             } else {
-                // UIImage here for items that don't open a submenu
                 let action = UIAction(
                     title: title,
-                    image: UIImage(systemName: "trash"),
+                    image: iconImage,
                     attributes: enabled ? [] : [.disabled]
                 ) { [weak self] _ in
                     print("Menu action selected: \(title) (id: \(id))")
@@ -356,4 +354,46 @@ extension IpadOSMenubarPlugin {
 
         return elements
     }
+
+    private func createImageFromBytes(_ iconBytesData: Any?) -> UIImage? {
+        guard let iconBytes = iconBytesData as? FlutterStandardTypedData else {
+            return nil
+        }
+
+        let data = Data(iconBytes.data)
+        guard let image = UIImage(data: data) else {
+            return nil
+        }
+
+        let templateImage = image.withRenderingMode(.alwaysTemplate)
+
+        let targetSize = CGSize(width: 18, height: 18)
+
+        UIGraphicsBeginImageContextWithOptions(targetSize, false, 0.0)
+
+        UIColor.label.setFill()
+
+        templateImage.draw(in: CGRect(origin: .zero, size: targetSize))
+
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return resizedImage?.withRenderingMode(.alwaysTemplate)
+    }
+
+    private func createSystemColoredImage(from originalImage: UIImage?) -> UIImage? {
+        guard let image = originalImage else { return nil }
+
+        return image.withTintColor(.label, renderingMode: .alwaysTemplate)
+    }
+
+    private func resizeImageWithQuality(_ image: UIImage?, targetSize: CGSize) -> UIImage? {
+        guard let image = image else { return nil }
+
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }
+
 }
