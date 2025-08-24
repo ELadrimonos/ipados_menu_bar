@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
-// TODO: Shortcuts & Emojis
+// TODO: Shortcuts
 class IPadEditMenu extends IPadMenu {
   @override
   String get menuId => 'edit';
@@ -70,12 +71,18 @@ class IPadEditMenu extends IPadMenu {
                  label: 'Undo',
                  onSelected: onUndo,
                  onSelectedIntent: onUndoIntent,
+                 shortcut: SingleActivator(LogicalKeyboardKey.keyZ, meta: true),
                ),
                PlatformMenuItemWithIcon(
                  icon: CupertinoIcons.arrow_uturn_right,
                  label: 'Redo',
                  onSelected: onRedo,
                  onSelectedIntent: onRedoIntent,
+                 shortcut: SingleActivator(
+                   LogicalKeyboardKey.keyZ,
+                   meta: true,
+                   shift: true,
+                 ),
                ),
              ],
            ),
@@ -84,24 +91,33 @@ class IPadEditMenu extends IPadMenu {
              label: 'Cut',
              onSelected: onCut,
              onSelectedIntent: onCutIntent,
+             shortcut: SingleActivator(LogicalKeyboardKey.keyX, meta: true),
            ),
            PlatformMenuItemWithIcon(
              icon: CupertinoIcons.doc_on_doc,
              label: 'Copy',
              onSelected: onCopy,
              onSelectedIntent: onCopyIntent,
+             shortcut: SingleActivator(LogicalKeyboardKey.keyC, meta: true),
            ),
            PlatformMenuItemWithIcon(
              icon: CupertinoIcons.doc_on_clipboard,
              label: 'Paste',
              onSelected: onPaste,
              onSelectedIntent: onPasteIntent,
+             shortcut: SingleActivator(LogicalKeyboardKey.keyV, meta: true),
            ),
            PlatformMenuItemWithIcon(
              icon: CupertinoIcons.doc_on_clipboard_fill,
              label: 'Paste with the same style',
              onSelected: onPasteStyle,
              onSelectedIntent: onPasteStyleIntent,
+             shortcut: SingleActivator(
+               LogicalKeyboardKey.keyZ,
+               meta: true,
+               alt: true,
+               shift: true,
+             ),
            ),
            PlatformMenuItemWithIcon(
              icon: CupertinoIcons.trash,
@@ -114,6 +130,7 @@ class IPadEditMenu extends IPadMenu {
              label: 'Select All',
              onSelected: onSelectAll,
              onSelectedIntent: onSelectAllIntent,
+             shortcut: SingleActivator(LogicalKeyboardKey.keyA, meta: true),
            ),
            PlatformMenuItemGroup(members: [...?additionalItems]),
            PlatformMenuItemGroup(
@@ -128,6 +145,10 @@ class IPadEditMenu extends IPadMenu {
                          label: 'Find',
                          onSelected: onFind,
                          onSelectedIntent: onFindIntent,
+                         shortcut: SingleActivator(
+                           LogicalKeyboardKey.keyF,
+                           meta: true,
+                         ),
                        ),
                        PlatformMenuItem(
                          label: 'Find & Replace',
@@ -138,18 +159,31 @@ class IPadEditMenu extends IPadMenu {
                          label: 'Find Next',
                          onSelected: onFindNext,
                          onSelectedIntent: onFindNextIntent,
+                         shortcut: SingleActivator(
+                           LogicalKeyboardKey.keyG,
+                           meta: true,
+                         ),
                        ),
                        PlatformMenuItem(
                          label: 'Find Previous',
                          onSelected: onFindPrevious,
                          onSelectedIntent: onFindPreviousIntent,
+                         shortcut: SingleActivator(
+                           LogicalKeyboardKey.keyG,
+                           meta: true,
+                           shift: true,
+                         ),
                        ),
                      ],
                    ),
                    PlatformMenuItem(
-                     label: 'Use Selection for Find',
+                     label: 'Use Selection to Find',
                      onSelected: onUseSelectionForFind,
                      onSelectedIntent: onUseSelectionForFindIntent,
+                     shortcut: SingleActivator(
+                       LogicalKeyboardKey.keyE,
+                       meta: true,
+                     ),
                    ),
                  ],
                ),
@@ -163,7 +197,7 @@ class IPadEditMenu extends IPadMenu {
                  members: [
                    PlatformMenuItemWithIcon(
                      icon: CupertinoIcons.person_circle,
-                   label: 'Contact',
+                     label: 'Contact',
                      onSelected: onAutoFillContact,
                      onSelectedIntent: onAutoFillContactIntent,
                    ),
@@ -189,6 +223,11 @@ class IPadEditMenu extends IPadMenu {
                ),
              ],
            ),
+
+           // SingleActivator doesn't have a FN modificator, so dictation and
+           // emoji won't have shortcut for now. I might make a custom classed
+           // based on ShortcutActivator that allows the "planet" key as a
+           // modificator.
            PlatformMenuItemWithIcon(
              icon: CupertinoIcons.mic,
              label: 'Dictation',
