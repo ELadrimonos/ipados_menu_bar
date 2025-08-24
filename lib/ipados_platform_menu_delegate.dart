@@ -36,7 +36,9 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) async {
     if (kDebugMode) {
-      debugPrint("IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus");
+      debugPrint(
+        "IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus",
+      );
     }
 
     _idMap.clear();
@@ -93,8 +95,8 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   List<Map<String, Object?>> _customToChannelRepresentation(
-      PlatformMenuItem item,
-      ) {
+    PlatformMenuItem item,
+  ) {
     final List<Map<String, Object?>> result = [];
 
     if (item is PlatformMenu) {
@@ -117,7 +119,8 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       }
       result.add({'type': 'group', 'children': groupChildren});
     } else {
-      final bool enabled = item.onSelected != null || item.onSelectedIntent != null;
+      final bool enabled =
+          item.onSelected != null || item.onSelectedIntent != null;
 
       final Map<String, Object?> itemMap = {
         'id': _getId(item),
@@ -141,7 +144,9 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   // Process before sending anything
-  Future<void> _processIconsAndSetMenus(List<Map<String, Object?>> menus) async {
+  Future<void> _processIconsAndSetMenus(
+    List<Map<String, Object?>> menus,
+  ) async {
     for (final menu in menus) {
       await _processIconsRecursively(menu);
     }
@@ -155,7 +160,8 @@ class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       final iconBytes = await IconConverter.iconToBytes(
         iconData,
         size: 54.0,
-        color: CupertinoColors.black, // Use black color, will be adapted in Swift side
+        color: CupertinoColors
+            .black, // Use black color, will be adapted in Swift side
       );
 
       if (iconBytes != null) {

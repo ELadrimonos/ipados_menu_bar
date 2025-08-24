@@ -6,10 +6,10 @@ import 'package:flutter/rendering.dart';
 class IconConverter {
   /// Converts an IconData to PNG bytes
   static Future<Uint8List?> iconToBytes(
-      IconData iconData, {
-        double size = 24.0,
-        Color color = Colors.black,
-      }) async {
+    IconData iconData, {
+    double size = 24.0,
+    Color color = Colors.black,
+  }) async {
     try {
       // The higher the scale, the better the quality; using a very high scale may
       // impact performance!
@@ -19,9 +19,7 @@ class IconConverter {
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
 
-      final textPainter = TextPainter(
-        textDirection: TextDirection.ltr,
-      );
+      final textPainter = TextPainter(textDirection: TextDirection.ltr);
 
       // Text using the icon data
       textPainter.text = TextSpan(
@@ -44,10 +42,7 @@ class IconConverter {
 
       final picture = recorder.endRecording();
 
-      final img = await picture.toImage(
-        scaledSize.toInt(),
-        scaledSize.toInt(),
-      );
+      final img = await picture.toImage(scaledSize.toInt(), scaledSize.toInt());
 
       final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
       return byteData?.buffer.asUint8List();
@@ -57,13 +52,12 @@ class IconConverter {
     }
   }
 
-
   /// Alternate version using Widgets with full context
   static Future<Uint8List?> iconWidgetToBytes(
-      IconData iconData, {
-        double size = 24.0,
-        Color color = Colors.black,
-      }) async {
+    IconData iconData, {
+    double size = 24.0,
+    Color color = Colors.black,
+  }) async {
     try {
       // Create a full widget with Directionality, will throw errors if not
       // using this parent widget
@@ -71,11 +65,7 @@ class IconConverter {
         textDirection: TextDirection.ltr,
         child: Material(
           color: Colors.transparent,
-          child: Icon(
-            iconData,
-            size: size,
-            color: color,
-          ),
+          child: Icon(iconData, size: size, color: color),
         ),
       );
 
@@ -86,7 +76,10 @@ class IconConverter {
     }
   }
 
-  static Future<Uint8List?> _renderWidgetToBytes(Widget widget, Size size) async {
+  static Future<Uint8List?> _renderWidgetToBytes(
+    Widget widget,
+    Size size,
+  ) async {
     final RenderRepaintBoundary repaintBoundary = RenderRepaintBoundary();
 
     final PipelineOwner pipelineOwner = PipelineOwner(
@@ -104,9 +97,7 @@ class IconConverter {
         alignment: Alignment.center,
         child: repaintBoundary,
       ),
-      configuration: ViewConfiguration(
-        devicePixelRatio: 3.0,
-      ),
+      configuration: ViewConfiguration(devicePixelRatio: 3.0),
     );
 
     pipelineOwner.rootNode = renderView;
@@ -114,10 +105,10 @@ class IconConverter {
 
     // Create the widget tree
     final RenderObjectToWidgetElement<RenderBox> rootElement =
-    RenderObjectToWidgetAdapter<RenderBox>(
-      container: repaintBoundary,
-      child: widget,
-    ).attachToRenderTree(buildOwner);
+        RenderObjectToWidgetAdapter<RenderBox>(
+          container: repaintBoundary,
+          child: widget,
+        ).attachToRenderTree(buildOwner);
 
     try {
       buildOwner.buildScope(rootElement);
@@ -128,7 +119,9 @@ class IconConverter {
       pipelineOwner.flushPaint();
 
       final ui.Image image = await repaintBoundary.toImage(pixelRatio: 3.0);
-      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
 
       return byteData?.buffer.asUint8List();
     } finally {
