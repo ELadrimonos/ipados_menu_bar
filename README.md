@@ -67,7 +67,7 @@ import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IpadOSPlatformMenuDelegate();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
 
   runApp(MyApp());
 }

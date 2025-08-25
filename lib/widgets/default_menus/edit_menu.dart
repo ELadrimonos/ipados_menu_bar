@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
-// TODO: Shortcuts
+/// Custom [PlatformMenu] using a menuId to replace the native "edit" menu with
+/// the items from this class. Making it easier and faster to link callbacks
+/// from the app.
 class IPadEditMenu extends IPadMenu {
   @override
   String get menuId => 'edit';
@@ -132,6 +134,9 @@ class IPadEditMenu extends IPadMenu {
              onSelectedIntent: onSelectAllIntent,
              shortcut: SingleActivator(LogicalKeyboardKey.keyA, meta: true),
            ),
+
+           /// Additional items go in between the "actions" items and the "find"
+           /// items
            PlatformMenuItemGroup(members: [...?additionalItems]),
            PlatformMenuItemGroup(
              members: [

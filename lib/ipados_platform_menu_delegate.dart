@@ -13,8 +13,10 @@ const String _kMenuItemOpenedMethod = 'Menu.opened';
 const String _kMenuItemClosedMethod = 'Menu.closed';
 
 // TODO add shortcuts to dart items
-class IpadOSPlatformMenuDelegate extends PlatformMenuDelegate {
-  IpadOSPlatformMenuDelegate({MethodChannel? channel})
+/// Custom [PlatformMenuDelegate] adding support for menus on iOS, specifically
+/// for the new iPadOS 26 menu bar
+class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
+  IPadOSPlatformMenuDelegate({MethodChannel? channel})
     : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
       _idMap = <int, PlatformMenuItem>{} {
     this.channel.setMethodCallHandler(_methodCallHandler);

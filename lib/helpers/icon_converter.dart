@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+/// Helper class with constant methods to send [IconData] as image data to
+/// *Swift*
 class IconConverter {
   /// Converts an IconData to PNG bytes
   static Future<Uint8List?> iconToBytes(

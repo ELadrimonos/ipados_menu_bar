@@ -2,6 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
+/// Custom [PlatformMenu] using a menuId to replace the native "format" menu with
+/// the items from this class. Making it easier and faster to link callbacks
+/// from the app.
 class IPadFormatMenu extends IPadMenu {
   @override
   String get menuId => 'format';

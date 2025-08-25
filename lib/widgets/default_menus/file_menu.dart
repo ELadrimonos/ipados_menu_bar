@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
+/// Custom [PlatformMenu] using a menuId to replace the native "file" menu with
+/// the items from this class. Making it easier and faster to link callbacks
+/// from the app.
 class IPadFileMenu extends IPadMenu {
   @override
   String get menuId => 'file';
@@ -15,9 +18,9 @@ class IPadFileMenu extends IPadMenu {
          label: 'File',
          menus: [
            ...?additionalItems,
-           // Should be logic only, don't render this item in the future
+           /* Should be logic only, don't render this item in the future */
            PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.xmark, // Not same icon as iOS 26 :(
+             icon: CupertinoIcons.xmark,
              label: 'Close Window',
              onSelectedIntent: onCloseWindowIntent,
              onSelected: onCloseWindow,

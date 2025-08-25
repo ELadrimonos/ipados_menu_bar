@@ -4,7 +4,7 @@ import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IpadOSPlatformMenuDelegate();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
   debugPrint(
     "Platform menu delegate set: ${WidgetsBinding.instance.platformMenuDelegate}",
   );
@@ -20,7 +20,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late IpadOSPlatformMenuDelegate _menuDelegate;
+  late IPadOSPlatformMenuDelegate _menuDelegate;
   bool toggledOption = false;
 
   @override
@@ -28,7 +28,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _menuDelegate =
         WidgetsBinding.instance.platformMenuDelegate
-            as IpadOSPlatformMenuDelegate;
+            as IPadOSPlatformMenuDelegate;
     _configureDefaultMenus();
   }
 

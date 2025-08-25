@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+/// Custom [PlatformMenu] class with a new ***icon*** attribute.
 class PlatformMenuWithIcon extends PlatformMenu {
   IconData icon;
 

@@ -4,8 +4,9 @@ import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 // Note: This will be trickier to accomplish, as it has to respect the OS behavior,
 // only adding upon listeners
 
-/// Only use for callbacks when user switches layout, switches screen or
-/// creates a new window.
+/// Custom [PlatformMenu] using a menuId to replace the native "window" menu
+/// with listeners for when users switches layout, switches screen or
+/// create a new window.
 class IPadWindowMenu extends IPadMenu {
   @override
   String get menuId => 'window';
@@ -21,7 +22,7 @@ class IPadWindowMenu extends IPadMenu {
               PlatformMenuItem(label: 'Exit Full Screen'),
               PlatformMenuItem(label: 'Center'),
               // Doing my best translating from spanish by head
-              PlatformMenu(label: 'Translate & Redimension', menus: []),
+              PlatformMenu(label: 'Translate & Resize', menus: []),
             ],
           ),
         ],
