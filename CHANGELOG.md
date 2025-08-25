@@ -1,3 +1,8 @@
+## 0.1.1
+
+* Rename `IpadOSPlatformMenuDelegate` into `IPadOSPlatformMenuDelegate`
+* Update API documentation
+
 ## 0.1.0
 
 * Default menus now work like the classic PlatformMenu widgets and are configured at the widget tree.
