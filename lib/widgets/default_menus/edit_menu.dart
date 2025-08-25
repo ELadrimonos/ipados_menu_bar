@@ -1,7 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:ipados_menu_bar/ipados_menu_bar.dart';
-import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
+part of '../../ipados_menu_bar.dart';
 
 /// Custom [PlatformMenu] using a menuId to replace the native "edit" menu with
 /// the items from this class. Making it easier and faster to link callbacks

@@ -1,5 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
+part of '../../ipados_menu_bar.dart';
 
 // Note: This will be trickier to accomplish, as it has to respect the OS behavior,
 // only adding upon listeners

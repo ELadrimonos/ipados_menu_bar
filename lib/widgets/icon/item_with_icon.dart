@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+part of '../../ipados_menu_bar.dart';
 
 /// Custom [PlatformMenuItem] class with a new ***icon*** attribute.
 class PlatformMenuItemWithIcon extends PlatformMenuItem {

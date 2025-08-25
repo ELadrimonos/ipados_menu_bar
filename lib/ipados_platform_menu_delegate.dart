@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart';
 import 'package:ipados_menu_bar/helpers/icon_converter.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
-import 'package:ipados_menu_bar/widgets/default_menus/abstract_menu.dart';
 
 /// iPadOS exclusive channels
 const String _kMenuSetMethod = 'Menu.setMenus';
@@ -14,7 +13,7 @@ const String _kMenuItemClosedMethod = 'Menu.closed';
 
 // TODO add shortcuts to dart items
 /// Custom [PlatformMenuDelegate] adding support for menus on iOS, specifically
-/// for the new iPadOS 26 menu bar
+/// for the new iPadOS 26 menu bar.
 class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   IPadOSPlatformMenuDelegate({MethodChannel? channel})
     : channel = channel ?? const MethodChannel('flutter/ipados_menu'),

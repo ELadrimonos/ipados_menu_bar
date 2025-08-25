@@ -1,8 +1,14 @@
-/*
-This file is used exclusively for exports and to keep a single import
-using the same package name
-*/
 export 'ipados_platform_menu_delegate.dart';
-export 'widgets/default_menus/ipad_menus.dart';
-export 'widgets/icon/item_with_icon.dart';
-export 'widgets/icon/submenu_with_icon.dart';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+
+part 'widgets/default_menus/abstract_menu.dart';
+part 'widgets/default_menus/file_menu.dart';
+part 'widgets/default_menus/edit_menu.dart';
+part 'widgets/default_menus/format_menu.dart';
+part 'widgets/default_menus/view_menu.dart';
+part 'widgets/default_menus/window_menu.dart';
+
+part 'widgets/icon/item_with_icon.dart';
+part 'widgets/icon/submenu_with_icon.dart';
