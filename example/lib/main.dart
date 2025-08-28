@@ -1,4 +1,6 @@
+import 'package:cupertino_sidebar/cupertino_sidebar.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 
@@ -22,6 +24,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late IPadOSPlatformMenuDelegate _menuDelegate;
   bool toggledOption = false;
+  bool expandedSideBar = false;
 
   @override
   void initState() {
@@ -57,6 +60,15 @@ class _MyAppState extends State<MyApp> {
     return CupertinoApp(
       home: CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
+          leading: CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () {
+              setState(() {
+                expandedSideBar = !expandedSideBar;
+              });
+            },
+            child: const Icon(CupertinoIcons.sidebar_left),
+          ),
           middle: const Text('iPadOS 26+ menu bar plugin example app'),
         ),
         child: PlatformMenuBar(
@@ -67,7 +79,11 @@ class _MyAppState extends State<MyApp> {
             ),
             IPadFileMenu(),
             IPadWindowMenu(),
-            IPadViewMenu(),
+            IPadViewMenu(
+              onShowSidebar: () => setState(() {
+                expandedSideBar = !expandedSideBar;
+              }),
+            ),
             IPadFormatMenu(),
             PlatformMenu(
               label: 'Test Menu',
@@ -118,6 +134,7 @@ class _MyAppState extends State<MyApp> {
             PlatformMenu(
               label: 'Another Test Menu',
               menus: [
+                // TODO Add stateful item using UIMenuElement.State
                 PlatformMenuItemWithIcon(
                   icon: toggledOption
                       ? CupertinoIcons.checkmark_alt
@@ -126,6 +143,10 @@ class _MyAppState extends State<MyApp> {
                   onSelected: () => setState(() {
                     toggledOption = !toggledOption;
                   }),
+                  shortcut: SingleActivator(
+                    LogicalKeyboardKey.keyT,
+                    meta: true,
+                  ),
                 ),
                 if (toggledOption)
                   PlatformMenuWithIcon(
@@ -144,19 +165,33 @@ class _MyAppState extends State<MyApp> {
               ],
             ),
           ],
-          child: Center(
-            child: Column(
-              spacing: 32,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Text(
-                  "Swipe down from the top of the screen to see the magic happen",
+          child: Row(
+            children: [
+              CupertinoSidebarCollapsible(
+                isExpanded: expandedSideBar,
+                child: Container(color: CupertinoColors.activeBlue, width: 300),
+              ),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    spacing: 32,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Text(
+                        "Swipe down from the top of the screen to see the magic happen",
+                      ),
+                      SizedBox(
+                        width: 200,
+                        height: 36,
+                        child: CupertinoTextField(),
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(width: 200, height: 36, child: CupertinoTextField()),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
