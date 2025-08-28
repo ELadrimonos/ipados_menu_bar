@@ -310,6 +310,7 @@ extension IpadOSMenubarPlugin {
 
     private func buildMenuElements(from children: [[String: Any]]) -> [UIMenuElement] {
         var elements: [UIMenuElement] = []
+        var usedKeyCommands: Set<String> = Set()
 
         for childData in children {
             if let type = childData["type"] as? String, type == "group" {
@@ -346,15 +347,34 @@ extension IpadOSMenubarPlugin {
                     elements.append(submenu)
                 }
             } else {
-                let action = UIAction(
-                    title: title,
-                    image: iconImage,
-                    attributes: enabled ? [] : [.disabled]
-                ) { [weak self] _ in
-                    print("Menu action selected: \(title) (id: \(id))")
-                    self?.performAction(id: id)
+                if let shortcut = shortcut,
+                    let input = shortcut["trigger"] as? String,
+                    !input.isEmpty
+                {
+                    let modifiers = parseModifiers(shortcut["modifiers"])
+                    let keyCommandIdentifier = "\(input)-\(modifiers.rawValue)"
+                    if !usedKeyCommands.contains(keyCommandIdentifier) {
+                        usedKeyCommands.insert(keyCommandIdentifier)
+                        let keyCommand = UIKeyCommand(
+                            title: title,
+                            image: iconImage,
+                            action: #selector(handleKeyCommand(_:)),
+                            input: input, modifierFlags: modifiers,
+                            propertyList: id,
+                        )
+                        elements.append(keyCommand)
+                    }
+                } else {
+                    let action = UIAction(
+                        title: title,
+                        image: iconImage,
+                        attributes: enabled ? [] : [.disabled]
+                    ) { [weak self] _ in
+                        print("Menu action selected: \(title) (id: \(id))")
+                        self?.performAction(id: id)
+                    }
+                    elements.append(action)
                 }
-                elements.append(action)
             }
         }
 
@@ -403,4 +423,34 @@ extension IpadOSMenubarPlugin {
         }
     }
 
+    private func parseModifiers(_ modifiersData: Any?) -> UIKeyModifierFlags {
+        guard let modifiersList = modifiersData as? [String] else {
+            return []
+        }
+
+        var flags: UIKeyModifierFlags = []
+
+        for modifier in modifiersList {
+            switch modifier.lowercased() {
+            case "shift":
+                flags.insert(.shift)
+            case "control":
+                flags.insert(.control)
+            case "alt", "option":
+                flags.insert(.alternate)
+            case "command", "meta":
+                flags.insert(.command)
+            default:
+                break
+            }
+        }
+
+        return flags
+    }
+
+    @objc private func handleKeyCommand(_ sender: UIKeyCommand) {
+        if let id = sender.propertyList as? Int {
+            performAction(id: id)
+        }
+    }
 }
