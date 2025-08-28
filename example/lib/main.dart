@@ -145,8 +145,17 @@ class _MyAppState extends State<MyApp> {
             ),
           ],
           child: Center(
-            child: Text(
-              "Swipe down from the top of the screen to see the magic happen",
+            child: Column(
+              spacing: 32,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Text(
+                  "Swipe down from the top of the screen to see the magic happen",
+                ),
+                SizedBox(width: 200, height: 36, child: CupertinoTextField()),
+              ],
             ),
           ),
         ),

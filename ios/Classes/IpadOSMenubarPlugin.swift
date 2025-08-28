@@ -189,7 +189,7 @@ extension IpadOSMenubarPlugin {
         case "file":
             builder.insertChild(customMenu, atStartOfMenu: .file)
         case "window":
-        // TODO add listeners to the items, maybe getting the children
+            // TODO add listeners to the items, maybe getting the children
             builder.insertChild(customMenu, atStartOfMenu: .window)
         case "help":
             builder.insertChild(customMenu, atStartOfMenu: .help)
@@ -329,8 +329,8 @@ extension IpadOSMenubarPlugin {
             }
 
             let enabled = childData["enabled"] as? Bool ?? true
-
             let iconImage = createImageFromBytes(childData["iconBytes"])
+            let shortcut = childData["shortcut"] as? [String: Any]
 
             if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty
             {
@@ -374,7 +374,7 @@ extension IpadOSMenubarPlugin {
         let templateImage = image.withRenderingMode(.alwaysTemplate)
 
         // 14 seems very close to the native icon size
-        let targetSize = CGSize(width: 14, height: 14)
+        let targetSize = CGSize(width: 18, height: 18)
 
         UIGraphicsBeginImageContextWithOptions(targetSize, false, 0.0)
 
