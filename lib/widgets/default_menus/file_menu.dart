@@ -21,9 +21,7 @@ class IPadFileMenu extends IPadMenu {
              label: 'Close Window',
              onSelectedIntent: onCloseWindowIntent,
              onSelected: onCloseWindow,
-             shortcut: (onCloseWindow != null && onCloseWindowIntent == null)
-                 ? SingleActivator(LogicalKeyboardKey.keyW, meta: true)
-                 : null,
+             shortcut: SingleActivator(LogicalKeyboardKey.keyW, meta: true),
            ),
          ],
        );
