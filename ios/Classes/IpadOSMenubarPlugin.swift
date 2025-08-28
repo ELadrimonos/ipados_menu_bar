@@ -139,6 +139,14 @@ extension UIResponder {
             plugin.buildAllMenus(with: builder)
         }
     }
+
+    // Has to be inside UIResponder or else no UIKeyCommand will ever work
+    @objc func handleKeyCommand(_ sender: UIKeyCommand) {
+        if let id = sender.propertyList as? Int {
+            // Call using plugin's singleton
+            IpadOSMenubarPlugin.shared?.performAction(id: id)
+        }
+    }
 }
 
 extension IpadOSMenubarPlugin {
@@ -358,9 +366,10 @@ extension IpadOSMenubarPlugin {
                         let keyCommand = UIKeyCommand(
                             title: title,
                             image: iconImage,
-                            action: #selector(handleKeyCommand(_:)),
+                            action: #selector(UIResponder.handleKeyCommand(_:)),
                             input: input, modifierFlags: modifiers,
                             propertyList: id,
+                            attributes: enabled ? [] : [.disabled]
                         )
                         elements.append(keyCommand)
                     }
@@ -446,11 +455,5 @@ extension IpadOSMenubarPlugin {
         }
 
         return flags
-    }
-
-    @objc private func handleKeyCommand(_ sender: UIKeyCommand) {
-        if let id = sender.propertyList as? Int {
-            performAction(id: id)
-        }
     }
 }
