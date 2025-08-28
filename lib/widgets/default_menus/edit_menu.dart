@@ -40,24 +40,6 @@ class IPadEditMenu extends IPadMenu {
     VoidCallback? onUseSelectionForFind,
     Intent? onUseSelectionForFindIntent,
 
-    // AutoFill
-    VoidCallback? onAutoFillContact,
-    Intent? onAutoFillContactIntent,
-    VoidCallback? onAutoFillPasswords,
-    Intent? onAutoFillPasswordsIntent,
-    VoidCallback? onAutoFillCreditCard,
-    Intent? onAutoFillCreditCardIntent,
-    VoidCallback? onScanText,
-    Intent? onScanTextIntent,
-
-    // Others
-    VoidCallback? onDictation,
-    Intent? onDictationIntent,
-    VoidCallback? onEmoji,
-    Intent? onEmojiIntent,
-    VoidCallback? onShowKeyboard,
-    Intent? onShowKeyboardIntent,
-
     // Additional
     List<PlatformMenuItem>? additionalItems,
   }) : super(
@@ -190,63 +172,6 @@ class IPadEditMenu extends IPadMenu {
                  ],
                ),
              ],
-           ),
-           PlatformMenuWithIcon(
-             icon: CupertinoIcons.pencil_ellipsis_rectangle,
-             label: 'AutoFill',
-             menus: [
-               PlatformMenuItemGroup(
-                 members: [
-                   PlatformMenuItemWithIcon(
-                     icon: CupertinoIcons.person_circle,
-                     label: 'Contact',
-                     onSelected: onAutoFillContact,
-                     onSelectedIntent: onAutoFillContactIntent,
-                   ),
-                   PlatformMenuItemWithIcon(
-                     icon: CupertinoIcons.lock_circle,
-                     label: 'Passwords',
-                     onSelected: onAutoFillPasswords,
-                     onSelectedIntent: onAutoFillPasswordsIntent,
-                   ),
-                   PlatformMenuItemWithIcon(
-                     icon: CupertinoIcons.creditcard,
-                     label: 'Credit Card',
-                     onSelected: onAutoFillCreditCard,
-                     onSelectedIntent: onAutoFillCreditCardIntent,
-                   ),
-                 ],
-               ),
-               PlatformMenuItemWithIcon(
-                 icon: CupertinoIcons.doc_text_viewfinder,
-                 label: 'Scan Text',
-                 onSelected: onScanText,
-                 onSelectedIntent: onScanTextIntent,
-               ),
-             ],
-           ),
-
-           // SingleActivator doesn't have a FN modificator, so dictation and
-           // emoji won't have shortcut for now. I might make a custom classed
-           // based on ShortcutActivator that allows the "planet" key as a
-           // modificator.
-           PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.mic,
-             label: 'Dictation',
-             onSelected: onDictation,
-             onSelectedIntent: onDictationIntent,
-           ),
-           PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.smiley,
-             label: 'Emoji',
-             onSelected: onEmoji,
-             onSelectedIntent: onEmojiIntent,
-           ),
-           PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.keyboard,
-             label: 'Show Keyboard',
-             onSelected: onShowKeyboard,
-             onSelectedIntent: onShowKeyboardIntent,
            ),
          ],
        );
