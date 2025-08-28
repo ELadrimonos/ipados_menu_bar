@@ -94,7 +94,7 @@ class IPadEditMenu extends IPadMenu {
              onSelected: onPasteStyle,
              onSelectedIntent: onPasteStyleIntent,
              shortcut: SingleActivator(
-               LogicalKeyboardKey.keyZ,
+               LogicalKeyboardKey.keyV,
                meta: true,
                alt: true,
                shift: true,
