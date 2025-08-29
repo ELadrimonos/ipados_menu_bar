@@ -139,6 +139,14 @@ extension UIResponder {
             plugin.buildAllMenus(with: builder)
         }
     }
+
+    // Has to be inside UIResponder or else no UIKeyCommand will ever work
+    @objc func handleKeyCommand(_ sender: UIKeyCommand) {
+        if let id = sender.propertyList as? Int {
+            // Call using plugin's singleton
+            IpadOSMenubarPlugin.shared?.performAction(id: id)
+        }
+    }
 }
 
 extension IpadOSMenubarPlugin {
@@ -189,7 +197,7 @@ extension IpadOSMenubarPlugin {
         case "file":
             builder.insertChild(customMenu, atStartOfMenu: .file)
         case "window":
-        // TODO add listeners to the items, maybe getting the children
+            // TODO add listeners to the items, maybe getting the children
             builder.insertChild(customMenu, atStartOfMenu: .window)
         case "help":
             builder.insertChild(customMenu, atStartOfMenu: .help)
@@ -310,6 +318,7 @@ extension IpadOSMenubarPlugin {
 
     private func buildMenuElements(from children: [[String: Any]]) -> [UIMenuElement] {
         var elements: [UIMenuElement] = []
+        var usedKeyCommands: Set<String> = Set()
 
         for childData in children {
             if let type = childData["type"] as? String, type == "group" {
@@ -329,8 +338,8 @@ extension IpadOSMenubarPlugin {
             }
 
             let enabled = childData["enabled"] as? Bool ?? true
-
             let iconImage = createImageFromBytes(childData["iconBytes"])
+            let shortcut = childData["shortcut"] as? [String: Any]
 
             if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty
             {
@@ -346,15 +355,35 @@ extension IpadOSMenubarPlugin {
                     elements.append(submenu)
                 }
             } else {
-                let action = UIAction(
-                    title: title,
-                    image: iconImage,
-                    attributes: enabled ? [] : [.disabled]
-                ) { [weak self] _ in
-                    print("Menu action selected: \(title) (id: \(id))")
-                    self?.performAction(id: id)
+                if let shortcut = shortcut,
+                    let input = shortcut["trigger"] as? String,
+                    !input.isEmpty
+                {
+                    let modifiers = parseModifiers(shortcut["modifiers"])
+                    let keyCommandIdentifier = "\(input)-\(modifiers.rawValue)"
+                    if !usedKeyCommands.contains(keyCommandIdentifier) {
+                        usedKeyCommands.insert(keyCommandIdentifier)
+                        let keyCommand = UIKeyCommand(
+                            title: title,
+                            image: iconImage,
+                            action: #selector(UIResponder.handleKeyCommand(_:)),
+                            input: input, modifierFlags: modifiers,
+                            propertyList: id,
+                            attributes: enabled ? [] : [.disabled]
+                        )
+                        elements.append(keyCommand)
+                    }
+                } else {
+                    let action = UIAction(
+                        title: title,
+                        image: iconImage,
+                        attributes: enabled ? [] : [.disabled]
+                    ) { [weak self] _ in
+                        print("Menu action selected: \(title) (id: \(id))")
+                        self?.performAction(id: id)
+                    }
+                    elements.append(action)
                 }
-                elements.append(action)
             }
         }
 
@@ -373,8 +402,7 @@ extension IpadOSMenubarPlugin {
 
         let templateImage = image.withRenderingMode(.alwaysTemplate)
 
-        // 14 seems very close to the native icon size
-        let targetSize = CGSize(width: 14, height: 14)
+        let targetSize = CGSize(width: 18, height: 18)
 
         UIGraphicsBeginImageContextWithOptions(targetSize, false, 0.0)
 
@@ -403,4 +431,28 @@ extension IpadOSMenubarPlugin {
         }
     }
 
+    private func parseModifiers(_ modifiersData: Any?) -> UIKeyModifierFlags {
+        guard let modifiersList = modifiersData as? [String] else {
+            return []
+        }
+
+        var flags: UIKeyModifierFlags = []
+
+        for modifier in modifiersList {
+            switch modifier.lowercased() {
+            case "shift":
+                flags.insert(.shift)
+            case "control":
+                flags.insert(.control)
+            case "alt", "option":
+                flags.insert(.alternate)
+            case "command", "meta":
+                flags.insert(.command)
+            default:
+                break
+            }
+        }
+
+        return flags
+    }
 }

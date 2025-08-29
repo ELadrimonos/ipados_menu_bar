@@ -46,7 +46,7 @@ Add `ipados_menu_bar` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ipados_menu_bar: ^0.1.0
+  ipados_menu_bar: ^0.2.0
 ```
 
 Then run:
@@ -221,8 +221,9 @@ This package is specifically designed for iPadOS 26+ and provides enhanced funct
 | Menu Separators                               | ✅      |
 | App Info Custom Children Items                | ❌      |
 | Menu Icons Support                            | ✅      |
-| Default Items Callbacks via Dart              | 🚧     |
-| Keyboard Shortcuts                            | 🚧     |
+| Window Change listeners in dart               | 🚧     |
+| Stateful Items (checked, unchecked, mixed)    | 🚧     |
+| Keyboard Shortcuts                            | ✅     |
 
 ## ⚠️ API Stability Notice
 

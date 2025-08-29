@@ -1,3 +1,5 @@
+// Modificaciones para el archivo Dart (ipados_menu_bar.dart)
+
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -11,7 +13,6 @@ const String _kMenuSelectedCallbackMethod = 'Menu.selectedCallback';
 const String _kMenuItemOpenedMethod = 'Menu.opened';
 const String _kMenuItemClosedMethod = 'Menu.closed';
 
-// TODO add shortcuts to dart items
 /// Custom [PlatformMenuDelegate] adding support for menus on iOS, specifically
 /// for the new iPadOS 26 menu bar.
 class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
@@ -73,7 +74,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     };
 
     if (kDebugMode) {
-      debugPrint("Sending menu payload with processed icons");
+      debugPrint("Sending menu payload with processed icons and shortcuts");
     }
 
     channel.invokeMethod<void>(_kMenuSetMethod, payload);
@@ -112,6 +113,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'enabled': true,
         'children': children,
         'iconData': (item is PlatformMenuWithIcon) ? item.icon : null,
+        'shortcut': _extractShortcut(item.shortcut),
       });
     } else if (item is PlatformMenuItemGroup) {
       final List<Map<String, Object?>> groupChildren = [];
@@ -128,6 +130,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'label': item.label,
         'enabled': enabled,
         'iconData': (item is PlatformMenuItemWithIcon) ? item.icon : null,
+        'shortcut': _extractShortcut(item.shortcut),
       };
 
       if (item.members.isNotEmpty) {
@@ -142,6 +145,37 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     }
 
     return result;
+  }
+
+  Map<String, Object?>? _extractShortcut(MenuSerializableShortcut? shortcut) {
+    if (shortcut == null) {
+      return null;
+    }
+
+    if (shortcut is SingleActivator) {
+      return {
+        'trigger': shortcut.trigger.keyLabel.toLowerCase(),
+        'modifiers': _extractModifiers(shortcut),
+      };
+    } else if (shortcut is CharacterActivator) {
+      return {
+        'trigger': shortcut.character.toLowerCase(),
+        'modifiers': <String>[],
+      };
+    }
+
+    return null;
+  }
+
+  List<String> _extractModifiers(SingleActivator activator) {
+    final List<String> modifiers = [];
+
+    if (activator.control) modifiers.add('control');
+    if (activator.shift) modifiers.add('shift');
+    if (activator.alt) modifiers.add('alt');
+    if (activator.meta) modifiers.add('meta'); // Command key on macOS
+
+    return modifiers;
   }
 
   // Process before sending anything
