@@ -340,6 +340,7 @@ extension IpadOSMenubarPlugin {
             let enabled = childData["enabled"] as? Bool ?? true
             let iconImage = createImageFromBytes(childData["iconBytes"])
             let shortcut = childData["shortcut"] as? [String: Any]
+            let menuItemState = parseMenuItemState(childData["state"])
 
             if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty
             {
@@ -369,7 +370,9 @@ extension IpadOSMenubarPlugin {
                             action: #selector(UIResponder.handleKeyCommand(_:)),
                             input: input, modifierFlags: modifiers,
                             propertyList: id,
-                            attributes: enabled ? [] : [.disabled]
+                            attributes: enabled ? [] : [.disabled],
+                            state: menuItemState
+
                         )
                         elements.append(keyCommand)
                     }
@@ -377,7 +380,9 @@ extension IpadOSMenubarPlugin {
                     let action = UIAction(
                         title: title,
                         image: iconImage,
-                        attributes: enabled ? [] : [.disabled]
+                        attributes: enabled ? [] : [.disabled],
+                        state: menuItemState
+
                     ) { [weak self] _ in
                         print("Menu action selected: \(title) (id: \(id))")
                         self?.performAction(id: id)
@@ -454,5 +459,22 @@ extension IpadOSMenubarPlugin {
         }
 
         return flags
+    }
+
+    private func parseMenuItemState(_ stateData: Any?) -> UIMenuElement.State {
+        guard let stateString = stateData as? String else {
+            return .off
+        }
+
+        switch stateString.lowercased() {
+        case "on":
+            return .on
+        case "off":
+            return .off
+        case "mixed":
+            return .mixed
+        default:
+            return .off
+        }
     }
 }
