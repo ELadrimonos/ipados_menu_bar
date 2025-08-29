@@ -12,3 +12,6 @@ part 'widgets/default_menus/window_menu.dart';
 
 part 'widgets/icon/item_with_icon.dart';
 part 'widgets/icon/submenu_with_icon.dart';
+
+part 'widgets/stateful_menu_item.dart';
+part 'helpers/menu_item_state.dart';

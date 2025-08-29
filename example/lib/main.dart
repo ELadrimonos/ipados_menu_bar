@@ -26,33 +26,22 @@ class _MyAppState extends State<MyApp> {
   bool toggledOption = false;
   bool expandedSideBar = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _menuDelegate =
-        WidgetsBinding.instance.platformMenuDelegate
-            as IPadOSPlatformMenuDelegate;
-    _configureDefaultMenus();
-  }
+  MenuItemState _currentTriState = MenuItemState.off;
+  IconData _currentTriStateIcon = CupertinoIcons.shield_slash;
 
-  Future<void> _configureDefaultMenus() async {
-    // Deprecated method, start working with the new widgets
-    /*
-    await _menuDelegate.configureDefaultMenus({
-            'file': {
-        'additionalItems': [
-          {'id': 100, 'label': 'Mi Nuevo Archivo', 'enabled': true},
-          {'id': 101, 'label': 'Mi Abrir Especial', 'enabled': true},
-        ],
-      },
-      'edit': {
-        'additionalItems': [
-          {'id': 102, 'label': 'Mi Función Personalizada', 'enabled': true},
-        ],
-      },
-      'hidden': [],
+  void _toggleTriStateAction() {
+    setState(() {
+      if (_currentTriState == MenuItemState.off) {
+        _currentTriState = MenuItemState.on;
+        _currentTriStateIcon = CupertinoIcons.shield_fill;
+      } else if (_currentTriState == MenuItemState.on) {
+        _currentTriState = MenuItemState.mixed;
+        _currentTriStateIcon = CupertinoIcons.shield_lefthalf_fill;
+      } else {
+        _currentTriState = MenuItemState.off;
+        _currentTriStateIcon = CupertinoIcons.shield_slash;
+      }
     });
-    */
   }
 
   @override
@@ -60,6 +49,9 @@ class _MyAppState extends State<MyApp> {
     return CupertinoApp(
       home: CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
+          // CupertinoNavigationBar should have a left padding of 64 to give
+          // space for items when theres windows controls present on the app
+          padding: EdgeInsetsDirectional.only(start: 64),
           leading: CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () {
@@ -134,11 +126,8 @@ class _MyAppState extends State<MyApp> {
             PlatformMenu(
               label: 'Another Test Menu',
               menus: [
-                // TODO Add stateful item using UIMenuElement.State
-                PlatformMenuItemWithIcon(
-                  icon: toggledOption
-                      ? CupertinoIcons.checkmark_alt
-                      : CupertinoIcons.xmark,
+                StatefulPlatformMenuItem(
+                  state: toggledOption ? MenuItemState.on : MenuItemState.off,
                   label: 'Toggled: $toggledOption',
                   onSelected: () => setState(() {
                     toggledOption = !toggledOption;
@@ -147,6 +136,12 @@ class _MyAppState extends State<MyApp> {
                     LogicalKeyboardKey.keyT,
                     meta: true,
                   ),
+                ),
+                StatefulPlatformMenuItemWithIcon(
+                  label: "${_currentTriState.name} state",
+                  icon: _currentTriStateIcon,
+                  state: _currentTriState,
+                  onSelected: _toggleTriStateAction,
                 ),
                 if (toggledOption)
                   PlatformMenuWithIcon(

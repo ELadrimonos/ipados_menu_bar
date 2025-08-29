@@ -96,6 +96,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     return _serial;
   }
 
+  /// Transforms our flutter widgets into a data map for swift
   List<Map<String, Object?>> _customToChannelRepresentation(
     PlatformMenuItem item,
   ) {
@@ -132,6 +133,10 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'iconData': (item is PlatformMenuItemWithIcon) ? item.icon : null,
         'shortcut': _extractShortcut(item.shortcut),
       };
+
+      if (item is StatefulMenuItem) {
+        itemMap['state'] = (item as StatefulMenuItem).state.name;
+      }
 
       if (item.members.isNotEmpty) {
         final List<Map<String, Object?>> children = [];
@@ -274,16 +279,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         break;
       default:
         if (kDebugMode) debugPrint('Unknown menu method: ${call.method}');
-    }
-  }
-
-  // Legacy method kept for compatibility - now deprecated
-  @Deprecated('Use DefaultPlatformMenu classes in the widget tree instead')
-  Future<void> configureDefaultMenus(Map<String, dynamic> config) async {
-    if (kDebugMode) {
-      debugPrint(
-        'configureDefaultMenus is deprecated. Use DefaultPlatformMenu classes instead.',
-      );
     }
   }
 
