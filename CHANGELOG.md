@@ -1,6 +1,15 @@
+## 0.3.0
+
+* Added menu items state support via `StatefulPlatformMenuItem` and `StatefulPlatformMenuItemWithIcon`
+  * `MenuItemState.off` ->
+  * `MenuItemState.on` -> ✓
+  * `MenuItemState.mixed` -> －
+* Updated example to show off new API components
+
 ## 0.2.0
 
 * Added keyboard shortcuts support for items
+* Added sidebar example with shortcut
 
 ## 0.1.1
 
