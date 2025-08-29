@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Added keyboard shortcuts support for items
+
 ## 0.1.1
 
 * Rename `IpadOSPlatformMenuDelegate` into `IPadOSPlatformMenuDelegate`

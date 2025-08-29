@@ -402,7 +402,6 @@ extension IpadOSMenubarPlugin {
 
         let templateImage = image.withRenderingMode(.alwaysTemplate)
 
-        // 14 seems very close to the native icon size
         let targetSize = CGSize(width: 18, height: 18)
 
         UIGraphicsBeginImageContextWithOptions(targetSize, false, 0.0)
