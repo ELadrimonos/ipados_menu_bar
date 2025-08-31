@@ -76,7 +76,6 @@ class _MyAppState extends State<MyApp> {
                 expandedSideBar = !expandedSideBar;
               }),
             ),
-            IPadFormatMenu(),
             PlatformMenu(
               label: 'Test Menu',
               menus: [
@@ -123,6 +122,7 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
+            IPadFormatMenu(),
             PlatformMenu(
               label: 'Another Test Menu',
               menus: [
