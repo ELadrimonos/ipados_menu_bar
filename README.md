@@ -222,7 +222,7 @@ This package is specifically designed for iPadOS 26+ and provides enhanced funct
 | App Info Custom Children Items                | ❌      |
 | Menu Icons Support                            | ✅      |
 | Window Change listeners in dart               | 🚧     |
-| Stateful Items (checked, unchecked, mixed)    | 🚧     |
+| Stateful Items (checked, unchecked, mixed)    | ✅     |
 | Keyboard Shortcuts                            | ✅     |
 
 ## ⚠️ API Stability Notice
