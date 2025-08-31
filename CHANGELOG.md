@@ -1,5 +1,10 @@
 ## 0.3.0
 
+* Fixed custom menus placement behavior
+  * Now custom menus follow a *left to right* order correctly following the *top to bottom* widget tree placement
+
+## 0.3.0
+
 * Added menu items state support via `StatefulPlatformMenuItem` and `StatefulPlatformMenuItemWithIcon`
   * `MenuItemState.off` ->
   * `MenuItemState.on` -> ✓
