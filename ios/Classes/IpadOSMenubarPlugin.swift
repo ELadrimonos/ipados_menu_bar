@@ -92,7 +92,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     }
 
     public func getCustomMenus() -> [[String: Any]] {
-        return customMenus
+        return customMenus.reversed()
     }
 
     public func getPresentDefaultMenus() -> [String] {
