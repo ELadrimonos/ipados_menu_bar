@@ -77,7 +77,10 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
-            IPadWindowMenu(),
+            IPadWindowMenu(
+              onNewWindow: () => debugPrint("ABOUT TO CREATE NEW WINDOW!"),
+              onShowAllWindows: () => debugPrint("ABOUT TO SHOW ALL WINDOWS!")
+            ),
             IPadViewMenu(
               onShowSidebar: () => setState(() {
                 expandedSideBar = !expandedSideBar;

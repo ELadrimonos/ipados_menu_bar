@@ -32,6 +32,29 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   final Map<String, List<Map<String, Object?>>> _defaultMenuItems =
       <String, List<Map<String, Object?>>>{};
 
+  // Window callbacks storage
+  VoidCallback? _onNewWindow;
+  VoidCallback? _onShowAllWindows;
+
+  /// Window getters for Swift side
+  VoidCallback? get newWindowCallback => _onNewWindow;
+
+  VoidCallback? get showAllWindowsCallback => _onShowAllWindows;
+
+  void registerWindowCallbacks({
+    VoidCallback? onNewWindow,
+    VoidCallback? onShowAllWindows,
+  }) {
+    _onNewWindow = onNewWindow;
+    _onShowAllWindows = onShowAllWindows;
+
+    if (kDebugMode) {
+      debugPrint(
+        'Window callbacks registered - New: ${onNewWindow != null}, ShowAll: ${onShowAllWindows != null}',
+      );
+    }
+  }
+
   @override
   void clearMenus() => setMenus(<PlatformMenuItem>[]);
 
@@ -250,6 +273,19 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       );
     }
 
+    // Handle window-specific method calls
+    switch (call.method) {
+      case 'Window.newWindow':
+        if (kDebugMode) debugPrint("Executing new window callback");
+        _onNewWindow?.call();
+        return;
+      case 'Window.showAllWindows':
+        if (kDebugMode) debugPrint("Executing show all windows callback");
+        _onShowAllWindows?.call();
+        return;
+    }
+
+    // Handle regular menu item callbacks
     final int id = call.arguments as int;
     if (!_idMap.containsKey(id)) {
       if (kDebugMode) debugPrint('Menu event for unknown id $id');
