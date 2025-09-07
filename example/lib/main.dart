@@ -69,7 +69,14 @@ class _MyAppState extends State<MyApp> {
               onUndo: () => debugPrint('Undo action!'),
               onRedo: () => debugPrint('Redo action!'),
             ),
-            IPadFileMenu(),
+            IPadFileMenu(
+              additionalItems: [
+                PlatformMenuItemWithIcon(
+                  label: 'New File',
+                  icon: CupertinoIcons.doc,
+                ),
+              ],
+            ),
             IPadWindowMenu(),
             IPadViewMenu(
               onShowSidebar: () => setState(() {
