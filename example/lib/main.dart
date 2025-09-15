@@ -14,6 +14,29 @@ void main() {
   runApp(MyApp());
 }
 
+@pragma('vm:entry-point')
+void secondMain() {
+  runApp(SecondApp()); // UI diferente para escenas secundarias
+}
+
+class SecondApp extends StatelessWidget {
+// UI para segunda ventana, por ej., un Scaffold diferente
+@override
+Widget build(BuildContext context) {
+  return CupertinoApp(
+    home: CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          // CupertinoNavigationBar should have a left padding of 64 to give
+          // space for items when theres windows controls present on the app
+          padding: EdgeInsetsDirectional.only(start: 64),
+          middle: const Text('Second Window'),
+        ),
+      child: Center(child: Text('Esta es una instancia separada')),
+    ),
+  );
+}
+}
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -77,10 +100,10 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
-            IPadWindowMenu(
+            /*IPadWindowMenu(
               onNewWindow: () => debugPrint("ABOUT TO CREATE NEW WINDOW!"),
               onShowAllWindows: () => debugPrint("ABOUT TO SHOW ALL WINDOWS!")
-            ),
+            ),*/
             IPadViewMenu(
               onShowSidebar: () => setState(() {
                 expandedSideBar = !expandedSideBar;
