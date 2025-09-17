@@ -17,8 +17,8 @@ const String _kMenuItemClosedMethod = 'Menu.closed';
 /// for the new iPadOS 26 menu bar.
 class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   IPadOSPlatformMenuDelegate({MethodChannel? channel})
-    : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
-      _idMap = <int, PlatformMenuItem>{} {
+      : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
+        _idMap = <int, PlatformMenuItem>{} {
     this.channel.setMethodCallHandler(_methodCallHandler);
   }
 
@@ -30,58 +30,40 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   // Track which default menus are present
   final Set<String> _presentDefaultMenus = <String>{};
   final Map<String, List<Map<String, Object?>>> _defaultMenuItems =
-      <String, List<Map<String, Object?>>>{};
+  <String, List<Map<String, Object?>>>{};
 
-  // Window callbacks storage
-  VoidCallback? _onNewWindow;
-  VoidCallback? _onShowAllWindows;
-
-  /// Window getters for Swift side
-  VoidCallback? get newWindowCallback => _onNewWindow;
-
-  VoidCallback? get showAllWindowsCallback => _onShowAllWindows;
-
-  void registerWindowCallbacks({
-    VoidCallback? onNewWindow,
-    VoidCallback? onShowAllWindows,
-  }) {
-    _onNewWindow = onNewWindow;
-    _onShowAllWindows = onShowAllWindows;
-
-    if (kDebugMode) {
-      debugPrint(
-        'Window callbacks registered - New: ${onNewWindow != null}, ShowAll: ${onShowAllWindows != null}',
-      );
-    }
-  }
+  // Window configuration
+  String? _currentEntrypoint;
 
   @override
   void clearMenus() => setMenus(<PlatformMenuItem>[]);
 
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) async {
-    if (kDebugMode) {
-      debugPrint(
-        "IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus",
-      );
-    }
 
     _idMap.clear();
     _presentDefaultMenus.clear();
     _defaultMenuItems.clear();
+    _currentEntrypoint = null; // Reset entrypoint
 
     final List<Map<String, Object?>> customMenus = <Map<String, Object?>>[];
 
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
-        if (kDebugMode) debugPrint("Processing menu: ${childItem.label}");
 
         if (childItem is IPadMenu) {
           _presentDefaultMenus.add(childItem.menuId);
           final menuItems = _getChildrenRepresentation(childItem.menus);
           await _processIconsAndSetMenus(menuItems);
           _defaultMenuItems[childItem.menuId] = menuItems;
-          if (kDebugMode) debugPrint("Found default menu: ${childItem.menuId}");
+
+          // Check if this is a window menu with entrypoint
+          if (childItem is IPadWindowMenu && childItem.entrypoint != null) {
+            _currentEntrypoint = childItem.entrypoint;
+            if (kDebugMode) {
+              debugPrint("Found window menu with entrypoint: ${childItem.entrypoint}");
+            }
+          }
         } else {
           final customMenuItems = _customToChannelRepresentation(childItem);
           await _processIconsAndSetMenus(customMenuItems);
@@ -94,18 +76,19 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       'customMenus': customMenus,
       'defaultMenus': _presentDefaultMenus.toList(),
       'defaultMenuItems': _defaultMenuItems,
+      'windowEntrypoint': _currentEntrypoint, // Send entrypoint to Swift
     };
 
     if (kDebugMode) {
-      debugPrint("Sending menu payload with processed icons and shortcuts");
+      debugPrint("Sending menu payload with entrypoint: $_currentEntrypoint");
     }
 
     channel.invokeMethod<void>(_kMenuSetMethod, payload);
   }
 
   List<Map<String, Object?>> _getChildrenRepresentation(
-    List<PlatformMenuItem> items,
-  ) {
+      List<PlatformMenuItem> items,
+      ) {
     final List<Map<String, Object?>> result = <Map<String, Object?>>[];
     for (final PlatformMenuItem item in items) {
       result.addAll(_customToChannelRepresentation(item));
@@ -121,8 +104,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   /// Transforms our flutter widgets into a data map for swift
   List<Map<String, Object?>> _customToChannelRepresentation(
-    PlatformMenuItem item,
-  ) {
+      PlatformMenuItem item,
+      ) {
     final List<Map<String, Object?>> result = [];
 
     if (item is PlatformMenu) {
@@ -208,8 +191,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   // Process before sending anything
   Future<void> _processIconsAndSetMenus(
-    List<Map<String, Object?>> menus,
-  ) async {
+      List<Map<String, Object?>> menus,
+      ) async {
     for (final menu in menus) {
       await _processIconsRecursively(menu);
     }
@@ -273,18 +256,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       );
     }
 
-    // Handle window-specific method calls
-    switch (call.method) {
-      case 'Window.newWindow':
-        if (kDebugMode) debugPrint("Executing new window callback");
-        _onNewWindow?.call();
-        return;
-      case 'Window.showAllWindows':
-        if (kDebugMode) debugPrint("Executing show all windows callback");
-        _onShowAllWindows?.call();
-        return;
-    }
-
     // Handle regular menu item callbacks
     final int id = call.arguments as int;
     if (!_idMap.containsKey(id)) {
@@ -293,7 +264,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     }
 
     final PlatformMenuItem item = _idMap[id]!;
-    if (kDebugMode) debugPrint("Found menu item: ${item.label}");
 
     switch (call.method) {
       case _kMenuSelectedCallbackMethod:

@@ -2,55 +2,47 @@
 part of '../../ipados_menu_bar.dart';
 
 /// Custom [PlatformMenu] that integrates with iPadOS native window management
-/// and provides callbacks for app-specific window operations.
-/// 
-/// This menu registers callbacks directly with the platform delegate for
-/// native window actions without creating unnecessary menu items.
-/// 
+/// and sets the scene identifier for new windows.
+///
+/// This menu registers the entrypoint scene identifier with the platform delegate
+/// so that when a new window is opened from the native menu, it uses the correct scene.
+///
 /// ## Usage Example
-/// 
+///
 /// ```dart
 /// IPadWindowMenu(
-///   onNewWindow: () {
-///     // Initialize new window with specific route or data
-///     Navigator.of(context).pushNamed('/new-document');
-///   },
-///   onShowAllWindows: () {
-///     // Optional: Log analytics or refresh content
-///     _analyticsService.trackShowAllWindows();
-///   },
+///   entrypoint: 'SecondScene', // This will be used for new windows
 /// )
 /// ```
+///
+/// The delegate will automatically handle:
+/// - Setting the scene ID in Swift when opening new windows
+/// - Using the default "MainScene" if no entrypoint is specified
 class IPadWindowMenu extends IPadMenu {
   @override
   String get menuId => 'window';
 
-  /// Creates a window menu that registers callbacks for native window actions.
-  /// 
-  /// [onNewWindow] is called when the user selects "New Window" from the native menu.
-  /// [onShowAllWindows] is called when the user selects "Show All Windows".
+  /// Creates a window menu that sets the scene identifier for new windows.
+  ///
+  /// [entrypoint] specifies the scene ID (e.g., 'SecondScene') for new windows.
+  /// If not provided, defaults to 'MainScene'.
   IPadWindowMenu({
-    VoidCallback? onNewWindow,
-    VoidCallback? onShowAllWindows,
+    this.entrypoint,
+    List<PlatformMenuItem> additionalItems = const [],
   }) : super(
     label: 'Window',
-    menus: [], // Empty - we don't render any items
-  ) {
-    // Register callbacks directly with the delegate
-    _registerWindowCallbacks(onNewWindow, onShowAllWindows);
-  }
+    menus: additionalItems.isNotEmpty
+        ? additionalItems
+        : [
+      // Add a dummy invisible item to satisfy Flutter's validation
+      PlatformMenuItem(
+        label: '', // Empty label - won't be shown in native menu
+        onSelected: null, // No action - native items handle this
+      ),
+    ],
+  );
 
-  void _registerWindowCallbacks(
-      VoidCallback? onNewWindow,
-      VoidCallback? onShowAllWindows,
-      ) {
-    // This will be called by the delegate when processing the menu
-    final delegate = WidgetsBinding.instance.platformMenuDelegate;
-    if (delegate is IPadOSPlatformMenuDelegate) {
-      delegate.registerWindowCallbacks(
-        onNewWindow: onNewWindow,
-        onShowAllWindows: onShowAllWindows,
-      );
-    }
-  }
+  /// The scene identifier to use when opening new windows.
+  /// This value is automatically passed to the Swift side by the delegate.
+  final String? entrypoint;
 }

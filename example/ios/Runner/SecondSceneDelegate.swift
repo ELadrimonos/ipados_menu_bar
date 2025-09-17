@@ -23,5 +23,7 @@ class SecondSceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         window?.rootViewController = flutterViewController
         window?.makeKeyAndVisible()
+
+        print("I'm on SecondSceneDelegate!")
     }
 }
