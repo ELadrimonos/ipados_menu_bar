@@ -14,6 +14,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     @objc public var windowEntrypoint: String? = nil
 
     // Public method to get current entrypoint - easier for AppDelegate to call
+
     @objc public func getCurrentEntrypoint() -> String? {
         print("[IpadOSMenubarPlugin] getCurrentEntrypoint called, returning: \(String(describing: windowEntrypoint))")
         return windowEntrypoint
@@ -50,7 +51,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "Menu.setMenus":
             if let args = call.arguments as?  [String: Any] {
-                print("\(logTag) Menu.setMenus received (customMenus=\((args["customMenus"] as? [[String: Any]])?.count ?? 0), defaultMenus=\((args["defaultMenus"] as? [String])?.count ?? 0), defaultMenuItemsKeys=\((args["defaultMenuItems"] as? [String: [[String: Any]]])?.keys.count ?? 0))")
+                print("\(logTag) Menu.setMenus received (customMenus=\((args["customMenus"] as?  [[String: Any]])?.count ?? 0), defaultMenus=\((args["defaultMenus"] as?  [String])?.count ?? 0), defaultMenuItemsKeys=\((args["defaultMenuItems"] as?  [String: [[String: Any]]])?.keys.count ?? 0))")
 
                 if let customMenusData = args["customMenus"] as?  [[String: Any]] {
                     self.customMenus = customMenusData
@@ -100,42 +101,6 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
                 "help": "Help Menu",
             ]
             result(availableMenus)
-
-        case "Window.openNew":
-            print("\(logTag) Window.openNew invoked; current windowEntrypoint=\(String(describing: self.windowEntrypoint))")
-            // Use the entrypoint from the widget tree, or fallback to provided argument, or default to MainScene
-            // Map entrypoint names to scene identifiers
-            func sceneId(forEntrypoint ep: String?) -> String {
-                guard let ep = ep else { return "MainScene" }
-                switch ep {
-                case "secondMain": return "SecondScene"
-                default: return "MainScene"
-                }
-            }
-            var sceneIdToUse = sceneId(forEntrypoint: self.windowEntrypoint)
-
-            // If arguments are provided, they can still override (for backwards compatibility)
-            if let args = call.arguments as?  [String: Any], let sceneId = args["sceneId"] as? String {
-                sceneIdToUse = sceneId
-            }
-            print("\(logTag) Window.openNew will open sceneId=\(sceneIdToUse)")
-
-            self.openWindow(withSceneId: sceneIdToUse)
-            result(nil)
-
-        case "Window.openMain":
-            print("\(logTag) Window.openMain invoked; forcing sceneId=MainScene")
-            self.openWindow(withSceneId: "MainScene")
-            result(nil)
-
-        case "Window.openSecond":
-            print("\(logTag) Window.openSecond invoked; current windowEntrypoint=\(String(describing: self.windowEntrypoint))")
-            // Use the entrypoint if available, otherwise fallback to "SecondScene"
-            let sceneIdToUse = (self.windowEntrypoint == "secondMain") ? "SecondScene" : "SecondScene"
-            print("\(logTag) Window.openSecond will open sceneId=\(sceneIdToUse)")
-            self.openWindow(withSceneId: sceneIdToUse)
-            result(nil)
-
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -176,7 +141,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         print("\(logTag) sending entrypoint notification: \(String(describing: entrypoint))")
 
         // Send notification to AppDelegate
-        let userInfo: [String: Any] = entrypoint != nil ? ["entrypoint": entrypoint!] : [:]
+        let userInfo: [String: Any] = entrypoint != nil ? ["entrypoint": entrypoint!]: [:]
         NotificationCenter.default.post(
             name: NSNotification.Name("EntrypointUpdated"),
             object: self,
@@ -184,27 +149,6 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         )
 
         print("\(logTag) notification sent successfully")
-    }
-
-    private func openWindow(withSceneId sceneId: String) {
-        print("\(logTag) openWindow requested for sceneId=\(sceneId)")
-        DispatchQueue.main.async {
-            print("\(self.logTag) openWindow on main queue for sceneId=\(sceneId)")
-            guard let appDelegate = UIApplication.shared.delegate else {
-                print("\(self.logTag) No UIApplication delegate available")
-                return
-            }
-
-            // Llamada dinámica a @objc func openNewWindow(withSceneId:)
-            let selector = NSSelectorFromString("openNewWindowWithSceneId:")
-            print("\(self.logTag) attempting selector 'openNewWindowWithSceneId:' on AppDelegate? \(appDelegate.responds(to: selector))")
-            if appDelegate.responds(to: selector) {
-                // Firma esperada: - (void)openNewWindowWithSceneId:(NSString *)sceneId
-                appDelegate.perform(selector, with: sceneId)
-            } else {
-                print("\(self.logTag) AppDelegate does not implement openNewWindow(withSceneId:)")
-            }
-        }
     }
 }
 
@@ -447,8 +391,7 @@ extension IpadOSMenubarPlugin {
             let shortcut = childData["shortcut"] as?  [String: Any]
             let menuItemState = parseMenuItemState(childData["state"])
 
-            if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty
-            {
+            if let grandchildren = childData["children"] as?  [[String: Any]], !grandchildren.isEmpty {
                 let submenuElements = buildMenuElements(from: grandchildren)
 
                 if !submenuElements.isEmpty {
@@ -462,9 +405,8 @@ extension IpadOSMenubarPlugin {
                 }
             } else {
                 if let shortcut = shortcut,
-                    let input = shortcut["trigger"] as? String,
-                    !input.isEmpty
-                {
+                let input = shortcut["trigger"] as? String,
+                !input.isEmpty {
                     let modifiers = parseModifiers(shortcut["modifiers"])
                     let keyCommandIdentifier = "\(input)-\(modifiers.rawValue)"
                     if !usedKeyCommands.contains(keyCommandIdentifier) {
@@ -488,7 +430,8 @@ extension IpadOSMenubarPlugin {
                         attributes: enabled ? []: [.disabled],
                         state: menuItemState
 
-                    ) { [weak self] _ in
+                    ) {
+                        [weak self] _ in
                         print("Menu action selected: \(title) (id: \(id))")
                         self?.performAction(id: id)
                     }
@@ -527,22 +470,27 @@ extension IpadOSMenubarPlugin {
     }
 
     private func createSystemColoredImage(from originalImage: UIImage?) -> UIImage? {
-        guard let image = originalImage else { return nil }
+        guard let image = originalImage else {
+            return nil
+        }
 
         return image.withTintColor(.label, renderingMode: .alwaysTemplate)
     }
 
     private func resizeImageWithQuality(_ image: UIImage?, targetSize: CGSize) -> UIImage? {
-        guard let image = image else { return nil }
+        guard let image = image else {
+            return nil
+        }
 
         let renderer = UIGraphicsImageRenderer(size: targetSize)
-        return renderer.image { _ in
+        return renderer.image {
+            _ in
             image.draw(in: CGRect(origin: .zero, size: targetSize))
         }
     }
 
     private func parseModifiers(_ modifiersData: Any?) -> UIKeyModifierFlags {
-        guard let modifiersList = modifiersData as? [String] else {
+        guard let modifiersList = modifiersData as?  [String] else {
             return []
         }
 

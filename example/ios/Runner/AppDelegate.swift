@@ -77,7 +77,7 @@ import Flutter
     if desiredSceneId == nil {
       if let entrypoint = currentEntrypoint {
         print("\(logTag) found current entrypoint: \(entrypoint)")
-        desiredSceneId = entrypoint == "secondMain" ? "SecondScene" : nil
+          desiredSceneId = entrypoint == "thirdMain" ? "thirdScene" : entrypoint == "secondMain" ? "SecondScene" : nil
       }
     }
     print("\(logTag) desiredSceneId after current entrypoint=\(String(describing: desiredSceneId))")
@@ -92,6 +92,9 @@ import Flutter
     print("\(logTag) creating UISceneConfiguration with name=\(String(describing: desiredSceneId))")
 
     switch desiredSceneId {
+    case "ThirdScene", "thirdMain":
+        print("\(logTag) selecting SecondSceneDelegate for desiredSceneId=\(String(describing: desiredSceneId))")
+        config.delegateClass = ThirdSceneDelegate.self
     case "SecondScene", "secondMain":
       print("\(logTag) selecting SecondSceneDelegate for desiredSceneId=\(String(describing: desiredSceneId))")
       config.delegateClass = SecondSceneDelegate.self
@@ -106,19 +109,10 @@ import Flutter
     print("\(logTag) returning UISceneConfiguration with delegateClass=\(String(describing: config.delegateClass))")
     return config
   }
-
+    /*
   @objc func openNewWindowWithSceneId(_ sceneId: NSString) {
     print("\(logTag) openNewWindowWithSceneId called with sceneId=\(sceneId)")
     openNewWindow(withSceneId: sceneId as String)
   }
-
-  @objc func openWindowForSecondScene() {
-    print("\(logTag) openWindowForSecondScene invoked")
-    openNewWindow(withSceneId: "SecondScene")
-  }
-
-  @objc func openWindowForMainScene() {
-    print("\(logTag) openWindowForMainScene invoked")
-    openNewWindow(withSceneId: "MainScene")
-  }
+     */
 }
