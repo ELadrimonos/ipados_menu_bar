@@ -12,53 +12,20 @@ void main() {
 
 @pragma('vm:entry-point')
 void secondMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
-
-  // Use the same shared instance but don't override if already set
-  /*if (WidgetsBinding.instance.platformMenuDelegate is! IPadOSPlatformMenuDelegate) {
-    WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.shared;
-  }
-   */
+  //WidgetsFlutterBinding.ensureInitialized();
+  //WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
   runApp(SecondApp());
 }
 
-class SecondApp extends StatefulWidget {
-  @override
-  State<SecondApp> createState() => _SecondAppState();
+@pragma('vm:entry-point')
+void thirdMain() {
+  //WidgetsFlutterBinding.ensureInitialized();
+  //WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  runApp(ThirdApp());
 }
 
-class _SecondAppState extends State<SecondApp> with WidgetsBindingObserver {
-  late IPadOSPlatformMenuDelegate _menuDelegate;
-
-  @override
-  void initState() {
-    super.initState();
-    /*
-    _menuDelegate = IPadOSPlatformMenuDelegate.shared;
-    WidgetsBinding.instance.addObserver(this);
-
-    // Register this scene
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _menuDelegate.registerScene('second', context);
-      _menuDelegate.setActiveScene('second');
-    });
-     */
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      // Set this scene as active when resumed
-      //_menuDelegate.setActiveScene('second');
-    }
-  }
+class SecondApp extends StatelessWidget {
+  const SecondApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -68,30 +35,39 @@ class _SecondAppState extends State<SecondApp> with WidgetsBindingObserver {
           padding: EdgeInsetsDirectional.only(start: 64),
           middle: const Text('Second Window'),
         ),
-        child: PlatformMenuBar(
-          menus: [
-            IPadEditMenu(
-              onUndo: () => debugPrint('Second window - Undo action!'),
-              onRedo: () => debugPrint('Second window - Redo action!'),
-            ),
-            PlatformMenu(
-              label: 'Second Window Menu',
-              menus: [
-                PlatformMenuItem(
-                  label: 'Second Window Action',
-                  onSelected: () => debugPrint("Second window action selected"),
-                ),
-              ],
-            ),
-          ],
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Esta es una instancia separada'),
-                SizedBox(height: 20),
-              ],
-            ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Esta es una instancia separada'),
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ThirdApp extends StatelessWidget {
+  const ThirdApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoApp(
+      home: CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          padding: EdgeInsetsDirectional.only(start: 64),
+          middle: const Text('Third Window'),
+        ),
+        backgroundColor: CupertinoColors.destructiveRed,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('This is a different window'),
+              SizedBox(height: 20),
+            ],
           ),
         ),
       ),
@@ -107,9 +83,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  late IPadOSPlatformMenuDelegate _menuDelegate;
   bool toggledOption = false;
   bool expandedSideBar = false;
+  MenuItemState openThirdInsteadOfSecond = MenuItemState.off;
 
   MenuItemState _currentTriState = MenuItemState.off;
   IconData _currentTriStateIcon = CupertinoIcons.shield_slash;
@@ -127,27 +103,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _currentTriStateIcon = CupertinoIcons.shield_slash;
       }
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    /*
-    _menuDelegate = IPadOSPlatformMenuDelegate.shared;
-    WidgetsBinding.instance.addObserver(this);
-
-    // Register window callbacks
-    _menuDelegate.registerWindowCallbacks(
-      onNewWindow: () => debugPrint("ABOUT TO CREATE NEW WINDOW!"),
-      onShowAllWindows: () => debugPrint("ABOUT TO SHOW ALL WINDOWS!"),
-    );
-
-    // Register this scene
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _menuDelegate.registerScene('main', context);
-      _menuDelegate.setActiveScene('main');
-    });
-     */
   }
 
   @override
@@ -206,12 +161,32 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               ],
             ),
             IPadWindowMenu(
-                entrypoint: 'secondMain' // CAMBIO: Ahora coincide con el nombre de la función @pragma
+              entrypoint: openThirdInsteadOfSecond == MenuItemState.on
+                  ? 'thirdMain'
+                  : 'secondMain',
             ),
             IPadViewMenu(
               onShowSidebar: () => setState(() {
                 expandedSideBar = !expandedSideBar;
               }),
+              additionalItems: [
+                StatefulPlatformMenuItem(
+                  label: 'New window is third scene?',
+                  state: openThirdInsteadOfSecond,
+                  onSelected: () {
+                    setState(() {
+                      switch (openThirdInsteadOfSecond) {
+                        case MenuItemState.on:
+                          openThirdInsteadOfSecond = MenuItemState.off;
+                          break;
+                        default:
+                          openThirdInsteadOfSecond = MenuItemState.on;
+                          break;
+                      }
+                    });
+                  },
+                ),
+              ],
             ),
             PlatformMenu(
               label: 'Test Menu',

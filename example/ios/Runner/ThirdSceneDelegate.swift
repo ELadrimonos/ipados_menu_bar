@@ -1,19 +1,3 @@
-//
-//  SecondSceneDelegate 2.swift
-//  Runner
-//
-//  Created by Adrián Primo Bernat on 17/9/25.
-//
-
-
-//
-//  SecondSceneDelegate.swift
-//  Runner
-//
-//  Created by Adrián Primo Bernat on 15/9/25.
-//
-
-
 import UIKit
 import Flutter
 

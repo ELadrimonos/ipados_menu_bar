@@ -26,21 +26,17 @@ class IPadWindowMenu extends IPadMenu {
   ///
   /// [entrypoint] specifies the scene ID (e.g., 'SecondScene') for new windows.
   /// If not provided, defaults to 'MainScene'.
-  IPadWindowMenu({
-    this.entrypoint,
-    List<PlatformMenuItem> additionalItems = const [],
-  }) : super(
-    label: 'Window',
-    menus: additionalItems.isNotEmpty
-        ? additionalItems
-        : [
-      // Add a dummy invisible item to satisfy Flutter's validation
-      PlatformMenuItem(
-        label: '', // Empty label - won't be shown in native menu
-        onSelected: null, // No action - native items handle this
-      ),
-    ],
-  );
+  IPadWindowMenu({this.entrypoint})
+    : super(
+        label: 'Window',
+        menus: [
+          // Add a dummy invisible item to satisfy Flutter's validation
+          PlatformMenuItem(
+            label: '', // Empty label - won't be shown in native menu
+            onSelected: null, // No action - native items handle this
+          ),
+        ],
+      );
 
   /// The scene identifier to use when opening new windows.
   /// This value is automatically passed to the Swift side by the delegate.
