@@ -82,7 +82,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class _MyAppState extends State<MyApp> {
   bool toggledOption = false;
   bool expandedSideBar = false;
   MenuItemState openThirdInsteadOfSecond = MenuItemState.off;
@@ -103,25 +103,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _currentTriStateIcon = CupertinoIcons.shield_slash;
       }
     });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint("Main scene STATE: $state");
-
-    if (state == AppLifecycleState.resumed) {
-      debugPrint("Main scene HAS RESUMIDO!!");
-      // CAMBIO: Forzar rebuild de menús al resumir
-      setState(() {
-        // Trigger rebuild que enviará los menús actualizados
-      });
-    }
   }
 
   @override
