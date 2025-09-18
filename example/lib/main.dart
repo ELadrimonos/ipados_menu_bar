@@ -12,15 +12,15 @@ void main() {
 
 @pragma('vm:entry-point')
 void secondMain() {
-  //WidgetsFlutterBinding.ensureInitialized();
-  //WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
   runApp(SecondApp());
 }
 
 @pragma('vm:entry-point')
 void thirdMain() {
-  //WidgetsFlutterBinding.ensureInitialized();
-  //WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
   runApp(ThirdApp());
 }
 
@@ -117,15 +117,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     if (state == AppLifecycleState.resumed) {
       debugPrint("Main scene HAS RESUMIDO!!");
-      // Set this scene as active and refresh menus
-      //_menuDelegate.setActiveScene('main');
-
-      // Small delay to ensure scene activation
-      /*
-      Future.delayed(Duration(milliseconds: 50), () {
-        _menuDelegate.refreshActiveSceneMenus();
+      // CAMBIO: Forzar rebuild de menús al resumir
+      setState(() {
+        // Trigger rebuild que enviará los menús actualizados
       });
-       */
     }
   }
 

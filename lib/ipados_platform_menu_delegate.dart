@@ -1,5 +1,3 @@
-// Modificaciones para el archivo Dart (ipados_menu_bar.dart)
-
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -14,12 +12,13 @@ const String _kMenuItemOpenedMethod = 'Menu.opened';
 const String _kMenuItemClosedMethod = 'Menu.closed';
 
 /// Custom [PlatformMenuDelegate] adding support for menus on iOS, specifically
-/// for the new iPadOS 26 menu bar.
+/// for the new iPadOS 26 menu bar with multi-scene support.
 class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   IPadOSPlatformMenuDelegate({MethodChannel? channel})
-      : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
-        _idMap = <int, PlatformMenuItem>{} {
+    : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
+      _idMap = <int, PlatformMenuItem>{} {
     this.channel.setMethodCallHandler(_methodCallHandler);
+    _setupLifecycleObserver();
   }
 
   final MethodChannel channel;
@@ -27,68 +26,140 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   int _serial = 0;
   BuildContext? _lockedContext;
 
-  // Track which default menus are present
   final Set<String> _presentDefaultMenus = <String>{};
   final Map<String, List<Map<String, Object?>>> _defaultMenuItems =
-  <String, List<Map<String, Object?>>>{};
-
-  // Window configuration
+      <String, List<Map<String, Object?>>>{};
   String? _currentEntrypoint;
+  final List<Map<String, Object?>> _presentCustomMenus =
+      <Map<String, Object?>>[];
+
+  late final String _sceneId = _generateSceneId();
+  bool _isActive = false;
+
+  String _generateSceneId() {
+    return 'scene_${DateTime.now().millisecondsSinceEpoch}_${_serial}';
+  }
+
+  void _setupLifecycleObserver() {
+    WidgetsBinding.instance.addObserver(_LifecycleObserver(this));
+  }
+
+  void _markAsActive() {
+    if (!_isActive) {
+      _isActive = true;
+      if (kDebugMode) {
+        debugPrint("[$_sceneId] Scene marked as active");
+      }
+      // Reenviar menús cuando la escena se vuelve activa
+      _resendCurrentMenus();
+    }
+  }
+
+  void _markAsInactive() {
+    if (_isActive) {
+      _isActive = false;
+      if (kDebugMode) {
+        debugPrint("[$_sceneId] Scene marked as inactive");
+      }
+    }
+  }
+
+  // CAMBIO: Reenviar menús actuales sin limpiar el estado
+  void _resendCurrentMenus() {
+    if (_presentDefaultMenus.isNotEmpty || _defaultMenuItems.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint("[$_sceneId] Resending current menus on activation");
+      }
+
+      final Map<String, Object?> payload = <String, Object?>{
+        'customMenus': _presentCustomMenus.toList(),
+        'defaultMenus': _presentDefaultMenus.toList(),
+        'defaultMenuItems': _defaultMenuItems,
+        'windowEntrypoint': _currentEntrypoint,
+        'sceneId': _sceneId, // CAMBIO: Incluir ID de escena
+      };
+
+      channel.invokeMethod<void>(_kMenuSetMethod, payload);
+    }
+  }
 
   @override
   void clearMenus() => setMenus(<PlatformMenuItem>[]);
 
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) async {
+    if (kDebugMode) {
+      debugPrint("[$_sceneId] Setting menus (count: ${topLevelMenus.length})");
+    }
 
-    _idMap.clear();
+    final Set<int> newIds = <int>{};
+
     _presentDefaultMenus.clear();
     _defaultMenuItems.clear();
-    _currentEntrypoint = null; // Reset entrypoint
+    _presentCustomMenus.clear(); // 👈 limpiar antes de reconstruir
+    _currentEntrypoint = null;
 
     final List<Map<String, Object?>> customMenus = <Map<String, Object?>>[];
 
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
-
         if (childItem is IPadMenu) {
           _presentDefaultMenus.add(childItem.menuId);
           final menuItems = _getChildrenRepresentation(childItem.menus);
           await _processIconsAndSetMenus(menuItems);
           _defaultMenuItems[childItem.menuId] = menuItems;
 
-          // Check if this is a window menu with entrypoint
+          _collectIds(menuItems, newIds);
+
           if (childItem is IPadWindowMenu && childItem.entrypoint != null) {
             _currentEntrypoint = childItem.entrypoint;
             if (kDebugMode) {
-              debugPrint("Found window menu with entrypoint: ${childItem.entrypoint}");
+              debugPrint("[$_sceneId] Found window menu with entrypoint: ${childItem.entrypoint}");
             }
           }
         } else {
           final customMenuItems = _customToChannelRepresentation(childItem);
           await _processIconsAndSetMenus(customMenuItems);
           customMenus.addAll(customMenuItems);
+          _collectIds(customMenuItems, newIds);
         }
       }
     }
 
+    _presentCustomMenus.addAll(customMenus);
+
+    _idMap.removeWhere((id, _) => !newIds.contains(id));
+
     final Map<String, Object?> payload = <String, Object?>{
-      'customMenus': customMenus,
+      'customMenus': _presentCustomMenus,
       'defaultMenus': _presentDefaultMenus.toList(),
       'defaultMenuItems': _defaultMenuItems,
-      'windowEntrypoint': _currentEntrypoint, // Send entrypoint to Swift
+      'windowEntrypoint': _currentEntrypoint,
+      'sceneId': _sceneId,
     };
 
     if (kDebugMode) {
-      debugPrint("Sending menu payload with entrypoint: $_currentEntrypoint");
+      debugPrint("[$_sceneId] Sending menu payload with entrypoint: $_currentEntrypoint");
     }
 
+    _isActive = true;
     channel.invokeMethod<void>(_kMenuSetMethod, payload);
   }
 
+  void _collectIds(List<Map<String, Object?>> items, Set<int> idSet) {
+    for (final item in items) {
+      if (item['id'] != null) {
+        idSet.add(item['id'] as int);
+      }
+      if (item['children'] != null) {
+        _collectIds(item['children'] as List<Map<String, Object?>>, idSet);
+      }
+    }
+  }
+
   List<Map<String, Object?>> _getChildrenRepresentation(
-      List<PlatformMenuItem> items,
-      ) {
+    List<PlatformMenuItem> items,
+  ) {
     final List<Map<String, Object?>> result = <Map<String, Object?>>[];
     for (final PlatformMenuItem item in items) {
       result.addAll(_customToChannelRepresentation(item));
@@ -104,8 +175,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   /// Transforms our flutter widgets into a data map for swift
   List<Map<String, Object?>> _customToChannelRepresentation(
-      PlatformMenuItem item,
-      ) {
+    PlatformMenuItem item,
+  ) {
     final List<Map<String, Object?>> result = [];
 
     if (item is PlatformMenu) {
@@ -184,36 +255,32 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     if (activator.control) modifiers.add('control');
     if (activator.shift) modifiers.add('shift');
     if (activator.alt) modifiers.add('alt');
-    if (activator.meta) modifiers.add('meta'); // Command key on macOS
+    if (activator.meta) modifiers.add('meta');
 
     return modifiers;
   }
 
-  // Process before sending anything
   Future<void> _processIconsAndSetMenus(
-      List<Map<String, Object?>> menus,
-      ) async {
+    List<Map<String, Object?>> menus,
+  ) async {
     for (final menu in menus) {
       await _processIconsRecursively(menu);
     }
   }
 
   Future<void> _processIconsRecursively(Map<String, Object?> menuItem) async {
-    // Procesar icono del item actual
     if (menuItem.containsKey('iconData') && menuItem['iconData'] != null) {
       final iconData = menuItem['iconData'] as IconData;
 
       final iconBytes = await IconConverter.iconToBytes(
         iconData,
         size: 54.0,
-        color: CupertinoColors
-            .black, // Use black color, will be adapted in Swift side
+        color: CupertinoColors.black,
       );
 
       if (iconBytes != null) {
         menuItem['iconBytes'] = iconBytes;
       }
-      // Remove the iconData dart instance, we now work with bytes
       menuItem.remove('iconData');
     }
 
@@ -252,14 +319,13 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   Future<void> _methodCallHandler(MethodCall call) async {
     if (kDebugMode) {
       debugPrint(
-        "Method call received: ${call.method} with arguments: ${call.arguments}",
+        "[$_sceneId] Method call received: ${call.method} with arguments: ${call.arguments}",
       );
     }
 
-    // Handle regular menu item callbacks
     final int id = call.arguments as int;
     if (!_idMap.containsKey(id)) {
-      if (kDebugMode) debugPrint('Menu event for unknown id $id');
+      if (kDebugMode) debugPrint('[$_sceneId] Menu event for unknown id $id');
       return;
     }
 
@@ -267,7 +333,9 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
     switch (call.method) {
       case _kMenuSelectedCallbackMethod:
-        if (kDebugMode) debugPrint("Executing onSelected for: ${item.label}");
+        if (kDebugMode) {
+          debugPrint("[$_sceneId] Executing onSelected for: ${item.label}");
+        }
         item.onSelected?.call();
         if (item.onSelectedIntent != null) {
           final BuildContext? context =
@@ -284,7 +352,9 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         item.onClose?.call();
         break;
       default:
-        if (kDebugMode) debugPrint('Unknown menu method: ${call.method}');
+        if (kDebugMode) {
+          debugPrint('[$_sceneId] Unknown menu method: ${call.method}');
+        }
     }
   }
 
@@ -295,8 +365,42 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       );
       return result;
     } catch (e) {
-      if (kDebugMode) debugPrint('Error getting available default menus: $e');
+      if (kDebugMode) {
+        debugPrint('[$_sceneId] Error getting available default menus: $e');
+      }
       return null;
+    }
+  }
+
+  void dispose() {
+    _isActive = false;
+    if (kDebugMode) {
+      debugPrint("[$_sceneId] Delegate disposed");
+    }
+  }
+}
+
+class _LifecycleObserver extends WidgetsBindingObserver {
+  final IPadOSPlatformMenuDelegate delegate;
+
+  _LifecycleObserver(this.delegate);
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        delegate._markAsActive();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+        delegate._markAsInactive();
+        break;
+      case AppLifecycleState.detached:
+        delegate.dispose();
+        break;
+      case AppLifecycleState.hidden:
+        delegate._markAsInactive();
+        break;
     }
   }
 }
