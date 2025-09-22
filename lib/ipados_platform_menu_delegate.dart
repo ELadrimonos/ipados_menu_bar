@@ -33,12 +33,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   final List<Map<String, Object?>> _presentCustomMenus =
       <Map<String, Object?>>[];
 
-  late final String _sceneId = _generateSceneId();
   bool _isActive = false;
 
-  String _generateSceneId() {
-    return 'scene_${DateTime.now().millisecondsSinceEpoch}_${_serial}';
-  }
 
   void _setupLifecycleObserver() {
     WidgetsBinding.instance.addObserver(_LifecycleObserver(this));
@@ -47,9 +43,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   void _markAsActive() {
     if (!_isActive) {
       _isActive = true;
-      if (kDebugMode) {
-        debugPrint("[$_sceneId] Scene marked as active");
-      }
       // Reenviar menús cuando la escena se vuelve activa
       _resendCurrentMenus();
     }
@@ -58,25 +51,18 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   void _markAsInactive() {
     if (_isActive) {
       _isActive = false;
-      if (kDebugMode) {
-        debugPrint("[$_sceneId] Scene marked as inactive");
-      }
     }
   }
 
   // CAMBIO: Reenviar menús actuales sin limpiar el estado
   void _resendCurrentMenus() {
     if (_presentDefaultMenus.isNotEmpty || _defaultMenuItems.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint("[$_sceneId] Resending current menus on activation");
-      }
 
       final Map<String, Object?> payload = <String, Object?>{
         'customMenus': _presentCustomMenus.toList(),
         'defaultMenus': _presentDefaultMenus.toList(),
         'defaultMenuItems': _defaultMenuItems,
         'windowEntrypoint': _currentEntrypoint,
-        'sceneId': _sceneId, // CAMBIO: Incluir ID de escena
       };
 
       channel.invokeMethod<void>(_kMenuSetMethod, payload);
@@ -88,15 +74,11 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) async {
-    if (kDebugMode) {
-      debugPrint("[$_sceneId] Setting menus (count: ${topLevelMenus.length})");
-    }
-
     final Set<int> newIds = <int>{};
 
     _presentDefaultMenus.clear();
     _defaultMenuItems.clear();
-    _presentCustomMenus.clear(); // 👈 limpiar antes de reconstruir
+    _presentCustomMenus.clear();
     _currentEntrypoint = null;
 
     final List<Map<String, Object?>> customMenus = <Map<String, Object?>>[];
@@ -113,9 +95,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
           if (childItem is IPadWindowMenu && childItem.entrypoint != null) {
             _currentEntrypoint = childItem.entrypoint;
-            if (kDebugMode) {
-              debugPrint("[$_sceneId] Found window menu with entrypoint: ${childItem.entrypoint}");
-            }
           }
         } else {
           final customMenuItems = _customToChannelRepresentation(childItem);
@@ -135,12 +114,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       'defaultMenus': _presentDefaultMenus.toList(),
       'defaultMenuItems': _defaultMenuItems,
       'windowEntrypoint': _currentEntrypoint,
-      'sceneId': _sceneId,
     };
-
-    if (kDebugMode) {
-      debugPrint("[$_sceneId] Sending menu payload with entrypoint: $_currentEntrypoint");
-    }
 
     _isActive = true;
     channel.invokeMethod<void>(_kMenuSetMethod, payload);
@@ -317,15 +291,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   Future<void> _methodCallHandler(MethodCall call) async {
-    if (kDebugMode) {
-      debugPrint(
-        "[$_sceneId] Method call received: ${call.method} with arguments: ${call.arguments}",
-      );
-    }
-
     final int id = call.arguments as int;
     if (!_idMap.containsKey(id)) {
-      if (kDebugMode) debugPrint('[$_sceneId] Menu event for unknown id $id');
       return;
     }
 
@@ -333,9 +300,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
     switch (call.method) {
       case _kMenuSelectedCallbackMethod:
-        if (kDebugMode) {
-          debugPrint("[$_sceneId] Executing onSelected for: ${item.label}");
-        }
         item.onSelected?.call();
         if (item.onSelectedIntent != null) {
           final BuildContext? context =
@@ -353,7 +317,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         break;
       default:
         if (kDebugMode) {
-          debugPrint('[$_sceneId] Unknown menu method: ${call.method}');
+          debugPrint('Unknown menu method: ${call.method}');
         }
     }
   }
@@ -366,7 +330,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       return result;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[$_sceneId] Error getting available default menus: $e');
+        debugPrint('Error getting available default menus: $e');
       }
       return null;
     }
@@ -375,7 +339,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   void dispose() {
     _isActive = false;
     if (kDebugMode) {
-      debugPrint("[$_sceneId] Delegate disposed");
+      debugPrint("Delegate disposed");
     }
   }
 }

@@ -40,7 +40,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     }
 
     private func setupMenuDelegate() {
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+        if UIApplication.shared.connectedScenes.first is UIWindowScene {
             menuBuilderDelegate = MenuBuilderDelegate(plugin: self)
         }
     }
