@@ -1,7 +1,23 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:cupertino_sidebar/cupertino_sidebar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
+
+Map<String, dynamic>? getJsonArguments(String jsonString) {
+  try {
+    final decoded = jsonDecode(jsonString);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    } else {
+      debugPrint('Entrypoint args JSON is not a map. Value: $decoded');
+      return null;
+    }
+  } catch (e) {
+    throw('Error decoding entrypoint args: $e');
+  }
+}
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,10 +27,26 @@ void main() {
 }
 
 @pragma('vm:entry-point')
-void secondMain() {
+void secondMain(List<String> args) {
   WidgetsFlutterBinding.ensureInitialized();
   WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
-  runApp(SecondApp());
+
+  Map<String, dynamic>? payload;
+
+  if (args.isNotEmpty) {
+    final jsonString = args.first;
+    try {
+      payload = getJsonArguments(jsonString);
+    } catch (e) {
+      debugPrint('Args: $args');
+    }
+  } else {
+    debugPrint('No args received on secondMain');
+  }
+
+  final greetingMessage = payload?['greeting'] as String?;
+
+  runApp(SecondApp(message: greetingMessage));
 }
 
 @pragma('vm:entry-point')
@@ -25,7 +57,9 @@ void thirdMain() {
 }
 
 class SecondApp extends StatelessWidget {
-  const SecondApp({super.key});
+  final String? message;
+
+  const SecondApp({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +69,22 @@ class SecondApp extends StatelessWidget {
           padding: EdgeInsetsDirectional.only(start: 64),
           middle: const Text('Second Window'),
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Esta es una instancia separada'),
-              SizedBox(height: 20),
-            ],
+        child: PlatformMenuBar(
+          menus: [
+            PlatformMenu(label: 'AHH', menus: [
+              PlatformMenuItem(label: "PIRATE YARG")
+            ])
+          ],
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Esta es una instancia separada'),
+                Text('Message received: $message'),
+                SizedBox(height: 20),
+                CupertinoButton(child: Text("AA"), onPressed: () {})
+              ],
+            ),
           ),
         ),
       ),
@@ -137,14 +180,16 @@ class _MyAppState extends State<MyApp> {
               ],
             ),
             IPadWindowMenu(
-              entrypoint: openThirdInsteadOfSecond == MenuItemState.on
-                  ? 'thirdMain'
-                  : 'secondMain',
+                entrypoint: openThirdInsteadOfSecond == MenuItemState.on
+                    ? 'thirdMain'
+                    : 'secondMain',
+                arguments: {"greeting": "You are a Pirate!!"}
             ),
             IPadViewMenu(
-              onShowSidebar: () => setState(() {
-                expandedSideBar = !expandedSideBar;
-              }),
+              onShowSidebar: () =>
+                  setState(() {
+                    expandedSideBar = !expandedSideBar;
+                  }),
               additionalItems: [
                 StatefulPlatformMenuItem(
                   label: 'New window is third scene?',
@@ -211,9 +256,10 @@ class _MyAppState extends State<MyApp> {
                 StatefulPlatformMenuItem(
                   state: toggledOption ? MenuItemState.on : MenuItemState.off,
                   label: 'Toggled: $toggledOption',
-                  onSelected: () => setState(() {
-                    toggledOption = !toggledOption;
-                  }),
+                  onSelected: () =>
+                      setState(() {
+                        toggledOption = !toggledOption;
+                      }),
                   shortcut: SingleActivator(
                     LogicalKeyboardKey.keyT,
                     meta: true,
