@@ -203,6 +203,7 @@ Create organized menu hierarchies with:
   - `IPadViewMenu`: Items to switch between screens or other UI-related actions like showing the sidebar
   - `IPadWindowMenu`: Listeners for reacting when the window layout changes, a new window is opened, switched screen,
   etc...
+  - `IPadAppMenu`: Application-level related custom items
 
 ## 📱 Platform Support
 
@@ -219,7 +220,7 @@ This package is specifically designed for iPadOS 26+ and provides enhanced funct
 | Submenu Nesting                               | ✅      |
 | Dynamic Menu Updates                          | ✅      |
 | Menu Separators                               | ✅      |
-| App Info Custom Children Items                | ❌      |
+| App Info Custom Children Items                | ✅      |
 | Menu Icons Support                            | ✅      |
 | Window Change listeners in dart               | 🚧     |
 | Stateful Items (checked, unchecked, mixed)    | ✅     |

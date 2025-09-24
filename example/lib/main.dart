@@ -178,6 +178,11 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
+            IPadAppMenu(
+              additionalItems: [
+                PlatformMenuItem(label: "HELLO I AM THE APP")
+              ]
+            ),
             IPadWindowMenu(
                 entrypoint: openThirdInsteadOfSecond == MenuItemState.on
                     ? 'thirdMain'

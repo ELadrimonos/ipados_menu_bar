@@ -267,6 +267,8 @@ extension IpadOSMenubarPlugin {
         switch menuId {
             
             // Have items with important native code, just add new items (for now)
+        case "application":
+            builder.insertChild(customMenu, atStartOfMenu: .application)
         case "file":
             builder.insertChild(customMenu, atStartOfMenu: .file)
         case "window":
