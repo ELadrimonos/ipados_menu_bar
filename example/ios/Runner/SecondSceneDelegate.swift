@@ -30,6 +30,49 @@ class SecondSceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.rootViewController = flutterViewController
         window?.makeKeyAndVisible()
 
+        NotificationCenter.default.addObserver(self, selector: #selector(windowDidBecomeKey(_:)), name: UIWindow.didBecomeKeyNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(windowDidResignKey(_:)), name: UIWindow.didResignKeyNotification, object: nil)
+
         print("I'm on SecondSceneDelegate!")
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        appDelegate?.currentFocusedSceneName = "SecondScene"
+        print("[SecondSceneDelegate] sceneDidBecomeActive -> focused: SecondScene")
+    }
+
+    func sceneWillResignActive(_ scene: UIScene) {
+        if appDelegate?.currentFocusedSceneName == "SecondScene" {
+            appDelegate?.currentFocusedSceneName = nil
+        }
+        print("[SecondSceneDelegate] sceneWillResignActive")
+    }
+
+    func sceneWillEnterForeground(_ scene: UIScene) {
+        print("[SecondSceneDelegate] sceneWillEnterForeground")
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        print("[SecondSceneDelegate] sceneDidEnterBackground")
+    }
+
+    func sceneDidDisconnect(_ scene: UIScene) {
+        NotificationCenter.default.removeObserver(self, name: UIWindow.didBecomeKeyNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIWindow.didResignKeyNotification, object: nil)
+        print("[SecondSceneDelegate] sceneDidDisconnect -> observers removed")
+    }
+
+    @objc private func windowDidBecomeKey(_ notification: Notification) {
+        guard let win = notification.object as? UIWindow, win === self.window else { return }
+        appDelegate?.currentFocusedSceneName = "SecondScene"
+        print("[SecondSceneDelegate] windowDidBecomeKey -> SecondScene")
+    }
+
+    @objc private func windowDidResignKey(_ notification: Notification) {
+        guard let win = notification.object as? UIWindow, win === self.window else { return }
+        if appDelegate?.currentFocusedSceneName == "SecondScene" {
+            appDelegate?.currentFocusedSceneName = nil
+        }
+        print("[SecondSceneDelegate] windowDidResignKey")
     }
 }

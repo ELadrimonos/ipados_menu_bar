@@ -1,9 +1,6 @@
 import Flutter
 import UIKit
 
-import Flutter
-import UIKit
-
 public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     private var channel: FlutterMethodChannel!
     private var customMenus: [[String: Any]] = []
@@ -16,7 +13,6 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     @objc public var windowEntrypointArgs: [String]? = nil
     
     // Public method to get current entrypoint - easier for AppDelegate to call
-    
     @objc public func getCurrentEntrypoint() -> String? {
         print("[IpadOSMenubarPlugin] getCurrentEntrypoint called, returning: \(String(describing: windowEntrypoint))")
         return windowEntrypoint
@@ -78,7 +74,6 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
                     print("\(logTag) no windowEntrypoint provided; using defaults")
                 }
                 
-                // ⚠️ Mueve la lógica del payload aquí ⚠️
                 if let payload = args["windowDataPayload"] as? [String: Any] {
                     self.windowDataPayload = payload
                     self.windowEntrypointArgs = makeEntrypointArgs(from: payload)
@@ -90,7 +85,6 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
                     print("\(logTag) no windowDataPayload provided")
                 }
                 
-                // Llama a la función que notifica el cambio, ahora con los dos datos
                 self.setGlobalEntrypointAndPayload()
                 
                 DispatchQueue.main.async {
@@ -235,13 +229,10 @@ extension IpadOSMenubarPlugin {
     func buildAllMenus(with builder: UIMenuBuilder) {
         print("\(logTag) rebuild: building all menus")
         
-        // Configure default menus based on what's present in the widget tree
         configureDefaultMenus(with: builder)
         
-        // Build custom menus
         buildCustomMenus(with: builder)
         
-        // Hide menus that are not present in the widget tree
         hideAbsentDefaultMenus(with: builder)
     }
     

@@ -12,6 +12,19 @@ import Flutter
     private var currentEntrypoint: String? = nil
     public var currentWindowDataPayload: [String: Any]? = nil
     
+    // Tracks which scene/window is currently focused (active)
+    public var currentFocusedSceneName: String? = nil {
+        didSet {
+            let name = currentFocusedSceneName ?? "none"
+            print("[AppDelegate] Current focused scene: \(name)")
+            NotificationCenter.default.post(
+                name: NSNotification.Name("FocusedSceneChanged"),
+                object: self,
+                userInfo: ["name": name]
+            )
+        }
+    }
+    
     override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         engines = FlutterEngineGroup(name: "myEngineGroup", project: nil)
         
