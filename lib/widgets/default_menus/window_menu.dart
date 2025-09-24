@@ -26,7 +26,7 @@ class IPadWindowMenu extends IPadMenu {
   ///
   /// [entrypoint] specifies the scene ID (e.g., 'SecondScene') for new windows.
   /// If not provided, defaults to 'MainScene'.
-  IPadWindowMenu({this.entrypoint})
+  IPadWindowMenu({this.entrypoint, this.arguments})
     : super(
         label: 'Window',
         menus: [
@@ -41,4 +41,5 @@ class IPadWindowMenu extends IPadMenu {
   /// The scene identifier to use when opening new windows.
   /// This value is automatically passed to the Swift side by the delegate.
   final String? entrypoint;
+  final Map<String, dynamic>? arguments;
 }

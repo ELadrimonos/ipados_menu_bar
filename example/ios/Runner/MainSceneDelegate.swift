@@ -18,7 +18,7 @@ class MainSceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let engine = appDelegate?.engines?.makeEngine(withEntrypoint: nil, libraryURI: nil) else {return}
         GeneratedPluginRegistrant.register(with: engine)
 
-        let flutterViewController = FlutterViewController(engine: engine, nibName: nil, bundle: nil)
+        let flutterViewController = FlutterViewController(engine: engine, nibName: nil, bundle: nil, )
 
         window = UIWindow(windowScene: windowScene)
         window?.rootViewController = flutterViewController

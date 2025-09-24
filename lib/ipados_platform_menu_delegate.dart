@@ -30,6 +30,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   final Map<String, List<Map<String, Object?>>> _defaultMenuItems =
       <String, List<Map<String, Object?>>>{};
   String? _currentEntrypoint;
+  Map<String, dynamic>? _currentWindowPayload;
   final List<Map<String, Object?>> _presentCustomMenus =
       <Map<String, Object?>>[];
 
@@ -63,6 +64,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'defaultMenus': _presentDefaultMenus.toList(),
         'defaultMenuItems': _defaultMenuItems,
         'windowEntrypoint': _currentEntrypoint,
+        'windowDataPayload': _currentWindowPayload,
       };
 
       channel.invokeMethod<void>(_kMenuSetMethod, payload);
@@ -95,6 +97,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
           if (childItem is IPadWindowMenu && childItem.entrypoint != null) {
             _currentEntrypoint = childItem.entrypoint;
+            _currentWindowPayload = childItem.arguments;
           }
         } else {
           final customMenuItems = _customToChannelRepresentation(childItem);
@@ -114,6 +117,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       'defaultMenus': _presentDefaultMenus.toList(),
       'defaultMenuItems': _defaultMenuItems,
       'windowEntrypoint': _currentEntrypoint,
+      'windowDataPayload': _currentWindowPayload,
     };
 
     _isActive = true;
