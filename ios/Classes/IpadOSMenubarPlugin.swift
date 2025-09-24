@@ -13,6 +13,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     // MAKE THIS @objc AND PUBLIC for AppDelegate access
     @objc public var windowEntrypoint: String? = nil
     @objc public var windowDataPayload: [String: Any]? = nil
+    @objc public var windowEntrypointArgs: [String]? = nil
     
     // Public method to get current entrypoint - easier for AppDelegate to call
     
@@ -80,9 +81,12 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
                 // ⚠️ Mueve la lógica del payload aquí ⚠️
                 if let payload = args["windowDataPayload"] as? [String: Any] {
                     self.windowDataPayload = payload
+                    self.windowEntrypointArgs = makeEntrypointArgs(from: payload)
                     print("\(logTag) windowDataPayload set to: \(payload)")
+                    print("\(logTag) windowEntrypointArgs set to: \(String(describing: self.windowEntrypointArgs))")
                 } else {
                     self.windowDataPayload = nil
+                    self.windowEntrypointArgs = nil
                     print("\(logTag) no windowDataPayload provided")
                 }
                 
@@ -153,6 +157,9 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         if let payload = windowDataPayload {
             userInfo["payload"] = payload
         }
+        if let args = windowEntrypointArgs {
+            userInfo["payloadArgs"] = args
+        }
         
         NotificationCenter.default.post(
             name: NSNotification.Name("EntrypointUpdated"),
@@ -161,6 +168,25 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         )
         
         print("\(logTag) notification sent successfully")
+    }
+    
+    // Encode payload dictionary into a single JSON string to pass as Dart entrypoint args.
+    private func makeEntrypointArgs(from payload: [String: Any]) -> [String]? {
+        guard JSONSerialization.isValidJSONObject(payload) else {
+            print("\(logTag) payload is not valid JSON")
+            return nil
+        }
+        do {
+            let data = try JSONSerialization.data(withJSONObject: payload, options: [])
+            guard let json = String(data: data, encoding: .utf8) else {
+                print("\(logTag) failed to create UTF-8 JSON string")
+                return nil
+            }
+            return [json]
+        } catch {
+            print("\(logTag) JSON serialization error: \(error)")
+            return nil
+        }
     }
 }
 

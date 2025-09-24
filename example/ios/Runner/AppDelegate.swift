@@ -6,6 +6,7 @@ import Flutter
     private let logTag = "[AppDelegate]"
     var engines: FlutterEngineGroup!
     private var pendingSceneIdentifier: String?
+    public var currentEntrypointArgs: [String]? = nil
     
     // Store current entrypoint received via notification
     private var currentEntrypoint: String? = nil
@@ -40,6 +41,14 @@ import Flutter
         } else {
             currentWindowDataPayload = nil
             print("\(logTag) cleared windowDataPayload")
+        }
+
+        if let payloadArgs = notification.userInfo?["payloadArgs"] as? [String] {
+            currentEntrypointArgs = payloadArgs
+            print("\(logTag) received payloadArgs: \(payloadArgs)")
+        } else {
+            currentEntrypointArgs = nil
+            print("\(logTag) cleared payloadArgs")
         }
     }
     
@@ -98,3 +107,4 @@ import Flutter
         return config
     }
 }
+

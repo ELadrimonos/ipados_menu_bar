@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:cupertino_sidebar/cupertino_sidebar.dart';
 import 'package:flutter/cupertino.dart';

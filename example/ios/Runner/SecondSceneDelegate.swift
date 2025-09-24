@@ -17,7 +17,7 @@ class SecondSceneDelegate: UIResponder, UIWindowSceneDelegate {
         let engineOptions: FlutterEngineGroupOptions = FlutterEngineGroupOptions()
         engineOptions.entrypoint = "secondMain"
         engineOptions.libraryURI = nil
-        engineOptions.entrypointArgs = makeEntrypointArgs(from: appDelegate?.currentWindowDataPayload)
+        engineOptions.entrypointArgs = appDelegate?.currentEntrypointArgs
         
         print("Entrypoint args sent: \(String(describing: engineOptions.entrypointArgs))")
         
@@ -31,25 +31,5 @@ class SecondSceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.makeKeyAndVisible()
 
         print("I'm on SecondSceneDelegate!")
-    }
-
-    // Encode payload dictionary into a single JSON string to pass as Dart entrypoint args.
-    private func makeEntrypointArgs(from payload: [String: Any]?) -> [String]? {
-        guard let payload = payload else { return nil }
-        guard JSONSerialization.isValidJSONObject(payload) else {
-            print("SecondSceneDelegate: payload is not valid JSON")
-            return nil
-        }
-        do {
-            let data = try JSONSerialization.data(withJSONObject: payload, options: [])
-            guard let json = String(data: data, encoding: .utf8) else {
-                print("SecondSceneDelegate: failed to create UTF-8 JSON string")
-                return nil
-            }
-            return [json]
-        } catch {
-            print("SecondSceneDelegate: JSON serialization error: \(error)")
-            return nil
-        }
     }
 }
