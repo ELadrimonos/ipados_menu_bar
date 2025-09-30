@@ -18,7 +18,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
       _idMap = <int, PlatformMenuItem>{} {
     this.channel.setMethodCallHandler(_methodCallHandler);
-    _setupLifecycleObserver();
   }
 
   final MethodChannel channel;
@@ -34,31 +33,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   final List<Map<String, Object?>> _presentCustomMenus =
       <Map<String, Object?>>[];
 
-  bool _isActive = false;
-
-
-  void _setupLifecycleObserver() {
-    WidgetsBinding.instance.addObserver(_LifecycleObserver(this));
-  }
-
-  void _markAsActive() {
-    if (!_isActive) {
-      _isActive = true;
-      // Reenviar menús cuando la escena se vuelve activa
-      _resendCurrentMenus();
-    }
-  }
-
-  void _markAsInactive() {
-    if (_isActive) {
-      _isActive = false;
-    }
-  }
-
-  // CAMBIO: Reenviar menús actuales sin limpiar el estado
   void _resendCurrentMenus() {
     if (_presentDefaultMenus.isNotEmpty || _defaultMenuItems.isNotEmpty) {
-
       final Map<String, Object?> payload = <String, Object?>{
         'customMenus': _presentCustomMenus.toList(),
         'defaultMenus': _presentDefaultMenus.toList(),
@@ -120,7 +96,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       'windowDataPayload': _currentWindowPayload,
     };
 
-    _isActive = true;
     channel.invokeMethod<void>(_kMenuSetMethod, payload);
   }
 
@@ -341,34 +316,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   void dispose() {
-    _isActive = false;
     if (kDebugMode) {
       debugPrint("Delegate disposed");
-    }
-  }
-}
-
-class _LifecycleObserver extends WidgetsBindingObserver {
-  final IPadOSPlatformMenuDelegate delegate;
-
-  _LifecycleObserver(this.delegate);
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.resumed:
-        delegate._markAsActive();
-        break;
-      case AppLifecycleState.inactive:
-      case AppLifecycleState.paused:
-        delegate._markAsInactive();
-        break;
-      case AppLifecycleState.detached:
-        delegate.dispose();
-        break;
-      case AppLifecycleState.hidden:
-        delegate._markAsInactive();
-        break;
     }
   }
 }
