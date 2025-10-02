@@ -67,7 +67,9 @@ import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  // Create method checks the platform on compile time, so it fallbacks to 
+  // DefaultPlatformMenuDelegate on other platforms
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
 
   runApp(MyApp());
 }

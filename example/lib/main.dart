@@ -20,7 +20,7 @@ Map<String, dynamic>? getJsonArguments(String jsonString) {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
 
   runApp(MyApp());
 }
@@ -28,7 +28,7 @@ void main() {
 @pragma('vm:entry-point')
 void secondMain(List<String> args) {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
 
   Map<String, dynamic>? payload;
 
@@ -51,7 +51,7 @@ void secondMain(List<String> args) {
 @pragma('vm:entry-point')
 void thirdMain() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
   runApp(ThirdApp());
 }
 
