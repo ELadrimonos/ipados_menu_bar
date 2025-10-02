@@ -3,16 +3,24 @@ import UIKit
 
 public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     private var channel: FlutterMethodChannel!
-    private var customMenus: [[String: Any]] = []
-    private var presentDefaultMenus: [String] = []
-    private var defaultMenuItems: [String: [[String: Any]]] = [:]
     
-    // MAKE THIS @objc AND PUBLIC for AppDelegate access
+    // Estado por escena: cada identificador de escena tiene su propio estado de menú
+    private var sceneMenuStates: [String: MenuState] = [:]
+    
+    // Estructura para almacenar el estado de menú de una escena
+    struct MenuState {
+        var customMenus: [[String: Any]] = []
+        var presentDefaultMenus: [String] = []
+        var defaultMenuItems: [String: [[String: Any]]] = [:]
+        var windowEntrypoint: String? = nil
+        var windowDataPayload: [String: Any]? = nil
+        var windowEntrypointArgs: [String]? = nil
+    }
+    
     @objc public var windowEntrypoint: String? = nil
     @objc public var windowDataPayload: [String: Any]? = nil
     @objc public var windowEntrypointArgs: [String]? = nil
     
-    // Public method to get current entrypoint - easier for AppDelegate to call
     @objc public func getCurrentEntrypoint() -> String? {
         print("[IpadOSMenubarPlugin] getCurrentEntrypoint called, returning: \(String(describing: windowEntrypoint))")
         return windowEntrypoint
@@ -33,6 +41,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         
         IpadOSMenubarPlugin.shared = instance
         instance.setupMenuDelegate()
+        instance.observeFocusChanges()
         
         print("[IpadOSMenubarPlugin] registered successfully")
     }
@@ -43,53 +52,102 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         }
     }
     
+    // Observar cambios de foco entre escenas
+    private func observeFocusChanges() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(focusedSceneChanged(_:)),
+            name: NSNotification.Name("FocusedSceneChanged"),
+            object: nil
+        )
+    }
+    
+    @objc private func focusedSceneChanged(_ notification: Notification) {
+        guard let sceneName = notification.userInfo?["name"] as? String else { return }
+        print("\(logTag) Scene focus changed to: \(sceneName)")
+        
+        // Restaurar el estado de menú de la escena enfocada
+        if let state = sceneMenuStates[sceneName] {
+            print("\(logTag) Restoring menu state for scene: \(sceneName)")
+            self.windowEntrypoint = state.windowEntrypoint
+            self.windowDataPayload = state.windowDataPayload
+            self.windowEntrypointArgs = state.windowEntrypointArgs
+            
+            DispatchQueue.main.async {
+                self.rebuildMenus()
+            }
+        }
+    }
+    
+    // Obtener el identificador de la escena actual
+    private func getCurrentSceneIdentifier() -> String? {
+        // Intenta obtener la escena activa
+        if let activeScene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+            return activeScene.session.configuration.name
+        }
+        
+        return nil
+    }
+    
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         print("\(logTag) handle: method=\(call.method)")
         
         switch call.method {
         case "Menu.setMenus":
-            if let args = call.arguments as?  [String: Any] {
-                print("\(logTag) Menu.setMenus received (customMenus=\((args["customMenus"] as?  [[String: Any]])?.count ?? 0), defaultMenus=\((args["defaultMenus"] as?  [String])?.count ?? 0), defaultMenuItemsKeys=\((args["defaultMenuItems"] as?  [String: [[String: Any]]])?.keys.count ?? 0))")
+            if let args = call.arguments as? [String: Any] {
+                // Determinar qué escena está haciendo la llamada
+                let sceneId = (args["sceneIdentifier"] as? String) ?? getCurrentSceneIdentifier() ?? "MainScene"
+                print("\(logTag) Menu.setMenus for scene: \(sceneId)")
                 
-                if let customMenusData = args["customMenus"] as?  [[String: Any]] {
-                    self.customMenus = customMenusData
+                var state = sceneMenuStates[sceneId] ?? MenuState()
+                
+                if let customMenusData = args["customMenus"] as? [[String: Any]] {
+                    state.customMenus = customMenusData
                     print("\(logTag) customMenus count=\(customMenusData.count)")
                 }
                 
-                if let defaultMenusData = args["defaultMenus"] as?  [String] {
-                    self.presentDefaultMenus = defaultMenusData
+                if let defaultMenusData = args["defaultMenus"] as? [String] {
+                    state.presentDefaultMenus = defaultMenusData
                     print("\(logTag) presentDefaultMenus ids=\(defaultMenusData)")
                 }
                 
-                if let defaultItemsData = args["defaultMenuItems"] as?  [String: [[String: Any]]] {
-                    self.defaultMenuItems = defaultItemsData
+                if let defaultItemsData = args["defaultMenuItems"] as? [String: [[String: Any]]] {
+                    state.defaultMenuItems = defaultItemsData
                     print("\(logTag) defaultMenuItems keys=\(Array(defaultItemsData.keys))")
                 }
                 
                 if let entrypoint = args["windowEntrypoint"] as? String {
-                    self.windowEntrypoint = entrypoint
+                    state.windowEntrypoint = entrypoint
                     print("\(logTag) windowEntrypoint set to: \(entrypoint)")
                 } else {
-                    self.windowEntrypoint = nil
-                    print("\(logTag) no windowEntrypoint provided; using defaults")
+                    state.windowEntrypoint = nil
                 }
                 
                 if let payload = args["windowDataPayload"] as? [String: Any] {
-                    self.windowDataPayload = payload
-                    self.windowEntrypointArgs = makeEntrypointArgs(from: payload)
-                    print("\(logTag) windowDataPayload set to: \(payload)")
-                    print("\(logTag) windowEntrypointArgs set to: \(String(describing: self.windowEntrypointArgs))")
+                    state.windowDataPayload = payload
+                    state.windowEntrypointArgs = makeEntrypointArgs(from: payload)
                 } else {
-                    self.windowDataPayload = nil
-                    self.windowEntrypointArgs = nil
-                    print("\(logTag) no windowDataPayload provided")
+                    state.windowDataPayload = nil
+                    state.windowEntrypointArgs = nil
                 }
                 
-                self.setGlobalEntrypointAndPayload()
+                // Guardar el estado actualizado
+                sceneMenuStates[sceneId] = state
                 
-                DispatchQueue.main.async {
-                    self.rebuildMenus()
+                // Si esta es la escena activa, actualizar las variables globales y reconstruir
+                if sceneId == getCurrentSceneIdentifier() {
+                    self.windowEntrypoint = state.windowEntrypoint
+                    self.windowDataPayload = state.windowDataPayload
+                    self.windowEntrypointArgs = state.windowEntrypointArgs
+                    
+                    self.setGlobalEntrypointAndPayload()
+                    
+                    DispatchQueue.main.async {
+                        self.rebuildMenus()
+                    }
                 }
+                
                 result(nil)
             } else {
                 result(FlutterError(code: "bad_args", message: "Invalid arguments", details: nil))
@@ -113,27 +171,45 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     private func rebuildMenus() {
         UIMenuSystem.main.setNeedsRebuild()
         
+        // Obtener el estado de la escena actual
+        guard let sceneId = getCurrentSceneIdentifier(),
+              let state = sceneMenuStates[sceneId] else {
+            return
+        }
+        
         NotificationCenter.default.post(
             name: NSNotification.Name("FlutterMenusChanged"),
             object: self,
             userInfo: [
-                "customMenus": customMenus,
-                "presentDefaultMenus": presentDefaultMenus,
-                "defaultMenuItems": defaultMenuItems,
+                "customMenus": state.customMenus,
+                "presentDefaultMenus": state.presentDefaultMenus,
+                "defaultMenuItems": state.defaultMenuItems,
             ]
         )
     }
     
     public func getCustomMenus() -> [[String: Any]] {
-        return customMenus.reversed()
+        guard let sceneId = getCurrentSceneIdentifier(),
+              let state = sceneMenuStates[sceneId] else {
+            return []
+        }
+        return state.customMenus.reversed()
     }
     
     public func getPresentDefaultMenus() -> [String] {
-        return presentDefaultMenus
+        guard let sceneId = getCurrentSceneIdentifier(),
+              let state = sceneMenuStates[sceneId] else {
+            return []
+        }
+        return state.presentDefaultMenus
     }
     
     public func getDefaultMenuItems() -> [String: [[String: Any]]] {
-        return defaultMenuItems
+        guard let sceneId = getCurrentSceneIdentifier(),
+              let state = sceneMenuStates[sceneId] else {
+            return [:]
+        }
+        return state.defaultMenuItems
     }
     
     public func performAction(id: Int) {
@@ -143,6 +219,15 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     
     private func setGlobalEntrypointAndPayload() {
         print("\(logTag) sending entrypoint and payload notification: entrypoint=\(String(describing: windowEntrypoint)), payload=\(String(describing: windowDataPayload))")
+        
+        // Verificar si estamos en un entorno multi-escena antes de enviar la notificación
+        let isMultiScene = UIApplication.shared.connectedScenes.count > 1 ||
+                          UIApplication.shared.supportsMultipleScenes
+        
+        if !isMultiScene {
+            print("\(logTag) Single-scene app detected, skipping AppDelegate notification")
+            return
+        }
         
         var userInfo: [String: Any] = [:]
         if let entrypoint = windowEntrypoint {
@@ -164,7 +249,6 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         print("\(logTag) notification sent successfully")
     }
     
-    // Encode payload dictionary into a single JSON string to pass as Dart entrypoint args.
     private func makeEntrypointArgs(from payload: [String: Any]) -> [String]? {
         guard JSONSerialization.isValidJSONObject(payload) else {
             print("\(logTag) payload is not valid JSON")
@@ -182,8 +266,11 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
             return nil
         }
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }
-
 
 private class MenuBuilderDelegate {
     weak var plugin: IpadOSMenubarPlugin?
@@ -194,8 +281,8 @@ private class MenuBuilderDelegate {
     }
     
     private func setupMenuInterception() {
-        let originalSelector = #selector (UIResponder.buildMenu (with:))
-        let swizzledSelector = #selector (UIResponder.swizzled_buildMenu (with:))
+        let originalSelector = #selector(UIResponder.buildMenu(with:))
+        let swizzledSelector = #selector(UIResponder.swizzled_buildMenu(with:))
         
         guard let originalMethod = class_getInstanceMethod(UIResponder.self, originalSelector),
               let swizzledMethod = class_getInstanceMethod(UIResponder.self, swizzledSelector) else {
@@ -215,11 +302,8 @@ extension UIResponder {
         }
     }
     
-    // Has to be inside UIResponder or else no UIKeyCommand will ever work
-    
     @objc func handleKeyCommand(_ sender: UIKeyCommand) {
         if let id = sender.propertyList as? Int {
-            // Call using plugin's singleton
             IpadOSMenubarPlugin.shared?.performAction(id: id)
         }
     }
@@ -230,9 +314,7 @@ extension IpadOSMenubarPlugin {
         print("\(logTag) rebuild: building all menus")
         
         configureDefaultMenus(with: builder)
-        
         buildCustomMenus(with: builder)
-        
         hideAbsentDefaultMenus(with: builder)
     }
     
@@ -265,33 +347,20 @@ extension IpadOSMenubarPlugin {
         )
         
         switch menuId {
-            
-            // Have items with important native code, just add new items (for now)
         case "application":
             builder.insertChild(customMenu, atStartOfMenu: .application)
         case "file":
             builder.insertChild(customMenu, atStartOfMenu: .file)
         case "window":
-            // Don't add custom items here
-            //builder.insertChild(customMenu, atStartOfMenu: .window)
             break
         case "help":
             builder.insertChild(customMenu, atStartOfMenu: .help)
-            
-            // In these cases, as there are no important predefined native functions, we replace all
-            // their items to the ones made in dart
         case "edit":
-            builder.replaceChildren(ofMenu: .edit) {
-                _ in customMenu.children
-            }
+            builder.replaceChildren(ofMenu: .edit) { _ in customMenu.children }
         case "format":
-            builder.replaceChildren(ofMenu: .format) {
-                _ in customMenu.children
-            }
+            builder.replaceChildren(ofMenu: .format) { _ in customMenu.children }
         case "view":
-            builder.replaceChildren(ofMenu: .view) {
-                _ in customMenu.children
-            }
+            builder.replaceChildren(ofMenu: .view) { _ in customMenu.children }
         default:
             print("Unknown default menu ID: \(menuId)")
         }
@@ -300,8 +369,6 @@ extension IpadOSMenubarPlugin {
     private func hideAbsentDefaultMenus(with builder: UIMenuBuilder) {
         let presentMenus = Set(getPresentDefaultMenus())
         let allDefaultMenus: Set<String> = ["file", "edit", "format", "view", "toolbar"]
-        
-        // Hide menus that are not present in the widget tree
         let menusToHide = allDefaultMenus.subtracting(presentMenus)
         
         print("\(logTag) menus: hiding absent=\(menusToHide)")
@@ -317,7 +384,7 @@ extension IpadOSMenubarPlugin {
         
         for menuData in customMenus {
             guard let title = menuData["label"] as? String,
-                  let children = menuData["children"] as?  [[String: Any]] else {
+                  let children = menuData["children"] as? [[String: Any]] else {
                 continue
             }
             
@@ -337,21 +404,16 @@ extension IpadOSMenubarPlugin {
     }
     
     private func insertCustomMenuInCorrectPosition(builder: UIMenuBuilder, menu: UIMenu) -> Bool {
-        // Correct order based on Apple HIG: AppInfo, File, Edit, Format, View, [CUSTOM], Window, Help
-        
-        // First try after the View menu
         if builder.menu(for: .view) != nil {
             builder.insertSibling(menu, afterMenu: .view)
             return true
         }
         
-        // If View doesn't exist, add after Format menu
         if builder.menu(for: .format) != nil {
             builder.insertSibling(menu, afterMenu: .format)
             return true
         }
         
-        // And so on...
         if builder.menu(for: .edit) != nil {
             builder.insertSibling(menu, afterMenu: .edit)
             return true
@@ -362,13 +424,11 @@ extension IpadOSMenubarPlugin {
             return true
         }
         
-        // As last resort, add it before the Window menu
         if builder.menu(for: .window) != nil {
             builder.insertSibling(menu, beforeMenu: .window)
             return true
         }
         
-        // Shouldn't even get here, but just in case
         if builder.menu(for: .help) != nil {
             builder.insertSibling(menu, beforeMenu: .help)
             return true
@@ -377,8 +437,6 @@ extension IpadOSMenubarPlugin {
         print("Warning: Could not find suitable position for custom menu")
         return false
     }
-    
-    // Only allow hiding certain menus. AppInfo, Window and Help are protected
     
     private func hideDefaultMenu(with builder: UIMenuBuilder, menuId: String) {
         switch menuId {
@@ -403,7 +461,7 @@ extension IpadOSMenubarPlugin {
         
         for childData in children {
             if let type = childData["type"] as? String, type == "group" {
-                if let groupChildren = childData["children"] as?  [[String: Any]] {
+                if let groupChildren = childData["children"] as? [[String: Any]] {
                     let groupElements = buildMenuElements(from: groupChildren)
                     let dividerGroup = UIMenu(
                         title: "", options: [.displayInline], children: groupElements)
@@ -419,17 +477,17 @@ extension IpadOSMenubarPlugin {
             
             let enabled = childData["enabled"] as? Bool ?? true
             let iconImage = createImageFromBytes(childData["iconBytes"])
-            let shortcut = childData["shortcut"] as?  [String: Any]
+            let shortcut = childData["shortcut"] as? [String: Any]
             let menuItemState = parseMenuItemState(childData["state"])
             
-            if let grandchildren = childData["children"] as?  [[String: Any]], !grandchildren.isEmpty {
+            if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty {
                 let submenuElements = buildMenuElements(from: grandchildren)
                 
                 if !submenuElements.isEmpty {
                     let submenu = UIMenu(
                         title: title,
                         image: iconImage,
-                        options: enabled ? []: [.displayInline],
+                        options: enabled ? [] : [.displayInline],
                         children: submenuElements
                     )
                     elements.append(submenu)
@@ -445,12 +503,11 @@ extension IpadOSMenubarPlugin {
                         let keyCommand = UIKeyCommand(
                             title: title,
                             image: iconImage,
-                            action: #selector (UIResponder.handleKeyCommand (_:)),
+                            action: #selector(UIResponder.handleKeyCommand(_:)),
                             input: input, modifierFlags: modifiers,
                             propertyList: id,
-                            attributes: enabled ? []: [.disabled],
+                            attributes: enabled ? [] : [.disabled],
                             state: menuItemState
-                            
                         )
                         elements.append(keyCommand)
                     }
@@ -458,11 +515,9 @@ extension IpadOSMenubarPlugin {
                     let action = UIAction(
                         title: title,
                         image: iconImage,
-                        attributes: enabled ? []: [.disabled],
+                        attributes: enabled ? [] : [.disabled],
                         state: menuItemState
-                        
-                    ) {
-                        [weak self] _ in
+                    ) { [weak self] _ in
                         print("Menu action selected: \(title) (id: \(id))")
                         self?.performAction(id: id)
                     }
@@ -485,13 +540,10 @@ extension IpadOSMenubarPlugin {
         }
         
         let templateImage = image.withRenderingMode(.alwaysTemplate)
-        
         let targetSize = CGSize(width: 18, height: 18)
         
         UIGraphicsBeginImageContextWithOptions(targetSize, false, 0.0)
-        
         UIColor.label.setFill()
-        
         templateImage.draw(in: CGRect(origin: .zero, size: targetSize))
         
         let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
@@ -500,28 +552,8 @@ extension IpadOSMenubarPlugin {
         return resizedImage?.withRenderingMode(.alwaysTemplate)
     }
     
-    private func createSystemColoredImage(from originalImage: UIImage?) -> UIImage? {
-        guard let image = originalImage else {
-            return nil
-        }
-        
-        return image.withTintColor(.label, renderingMode: .alwaysTemplate)
-    }
-    
-    private func resizeImageWithQuality(_ image: UIImage?, targetSize: CGSize) -> UIImage? {
-        guard let image = image else {
-            return nil
-        }
-        
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
-        return renderer.image {
-            _ in
-            image.draw(in: CGRect(origin: .zero, size: targetSize))
-        }
-    }
-    
     private func parseModifiers(_ modifiersData: Any?) -> UIKeyModifierFlags {
-        guard let modifiersList = modifiersData as?  [String] else {
+        guard let modifiersList = modifiersData as? [String] else {
             return []
         }
         
@@ -562,4 +594,3 @@ extension IpadOSMenubarPlugin {
         }
     }
 }
-
