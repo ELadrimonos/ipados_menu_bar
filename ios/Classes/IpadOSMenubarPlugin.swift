@@ -47,9 +47,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     }
     
     private func setupMenuDelegate() {
-        if UIApplication.shared.connectedScenes.first is UIWindowScene {
-            menuBuilderDelegate = MenuBuilderDelegate(plugin: self)
-        }
+        menuBuilderDelegate = MenuBuilderDelegate(plugin: self)
     }
     
     // Observar cambios de foco entre escenas
@@ -79,15 +77,17 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    // Obtener el identificador de la escena actual
-    private func getCurrentSceneIdentifier() -> String? {
-        // Intenta obtener la escena activa
+    // Obtener el identificador de la escena actual (con fallback para single-scene)
+    private func getCurrentSceneIdentifier() -> String {
+        // Si hay escenas conectadas y alguna activa en primer plano, usa su nombre si existe
         if let activeScene = UIApplication.shared.connectedScenes
             .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-            return activeScene.session.configuration.name
+            if let name = activeScene.session.configuration.name, !name.isEmpty {
+                return name
+            }
         }
-        
-        return nil
+        // Si no hay ninguna escena activa o no hay nombre configurado, usa un id estable
+        return "MainScene"
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -97,7 +97,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         case "Menu.setMenus":
             if let args = call.arguments as? [String: Any] {
                 // Determinar qué escena está haciendo la llamada
-                let sceneId = (args["sceneIdentifier"] as? String) ?? getCurrentSceneIdentifier() ?? "MainScene"
+                let sceneId = (args["sceneIdentifier"] as? String) ?? getCurrentSceneIdentifier()
                 print("\(logTag) Menu.setMenus for scene: \(sceneId)")
                 
                 var state = sceneMenuStates[sceneId] ?? MenuState()
@@ -172,8 +172,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         UIMenuSystem.main.setNeedsRebuild()
         
         // Obtener el estado de la escena actual
-        guard let sceneId = getCurrentSceneIdentifier(),
-              let state = sceneMenuStates[sceneId] else {
+        guard let state = sceneMenuStates[getCurrentSceneIdentifier()] else {
             return
         }
         
@@ -189,24 +188,21 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
     }
     
     public func getCustomMenus() -> [[String: Any]] {
-        guard let sceneId = getCurrentSceneIdentifier(),
-              let state = sceneMenuStates[sceneId] else {
+        guard let state = sceneMenuStates[getCurrentSceneIdentifier()] else {
             return []
         }
         return state.customMenus.reversed()
     }
     
     public func getPresentDefaultMenus() -> [String] {
-        guard let sceneId = getCurrentSceneIdentifier(),
-              let state = sceneMenuStates[sceneId] else {
+        guard let state = sceneMenuStates[getCurrentSceneIdentifier()] else {
             return []
         }
         return state.presentDefaultMenus
     }
     
     public func getDefaultMenuItems() -> [String: [[String: Any]]] {
-        guard let sceneId = getCurrentSceneIdentifier(),
-              let state = sceneMenuStates[sceneId] else {
+        guard let state = sceneMenuStates[getCurrentSceneIdentifier()] else {
             return [:]
         }
         return state.defaultMenuItems
@@ -274,6 +270,7 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
 
 private class MenuBuilderDelegate {
     weak var plugin: IpadOSMenubarPlugin?
+    private static var didSwizzle = false
     
     init(plugin: IpadOSMenubarPlugin) {
         self.plugin = plugin
@@ -281,6 +278,8 @@ private class MenuBuilderDelegate {
     }
     
     private func setupMenuInterception() {
+        guard !Self.didSwizzle else { return }
+        
         let originalSelector = #selector(UIResponder.buildMenu(with:))
         let swizzledSelector = #selector(UIResponder.swizzled_buildMenu(with:))
         
@@ -290,6 +289,8 @@ private class MenuBuilderDelegate {
         }
         
         method_exchangeImplementations(originalMethod, swizzledMethod)
+        
+        Self.didSwizzle = true
     }
 }
 
@@ -594,3 +595,4 @@ extension IpadOSMenubarPlugin {
         }
     }
 }
+
