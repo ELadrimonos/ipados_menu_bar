@@ -6,7 +6,8 @@ import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
+  WidgetsBinding.instance.platformMenuDelegate =
+      IPadOSPlatformMenuDelegate.create();
   debugPrint(
     "Platform menu delegate set: ${WidgetsBinding.instance.platformMenuDelegate}",
   );
@@ -76,9 +77,7 @@ class _MyAppState extends State<MyApp> {
               }),
             ),
             IPadAppMenu(
-              additionalItems: [
-                PlatformMenuItem(label: 'App Version')
-              ]
+              additionalItems: [PlatformMenuItem(label: 'App Version')],
             ),
             PlatformMenu(
               label: 'Test Menu',

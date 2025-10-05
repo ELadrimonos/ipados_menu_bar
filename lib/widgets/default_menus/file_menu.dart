@@ -8,5 +8,5 @@ class IPadFileMenu extends IPadMenu {
   String get menuId => 'file';
 
   IPadFileMenu({List<PlatformMenuItem>? additionalItems})
-      : super(label: 'File', menus: [...?additionalItems]);
+    : super(label: 'File', menus: [...?additionalItems]);
 }
