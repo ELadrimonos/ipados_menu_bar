@@ -65,6 +65,11 @@ class _MyAppState extends State<MyApp> {
         ),
         child: PlatformMenuBar(
           menus: [
+            // App info should always go first, as macOS renders the first item,
+            // as the application menu
+            IPadAppMenu(
+              additionalItems: [PlatformMenuItem(label: 'App Version')],
+            ),
             IPadEditMenu(
               onUndo: () => debugPrint('Undo action!'),
               onRedo: () => debugPrint('Redo action!'),
@@ -76,9 +81,7 @@ class _MyAppState extends State<MyApp> {
                 expandedSideBar = !expandedSideBar;
               }),
             ),
-            IPadAppMenu(
-              additionalItems: [PlatformMenuItem(label: 'App Version')],
-            ),
+
             PlatformMenu(
               label: 'Test Menu',
               menus: [
@@ -125,6 +128,8 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
+            // On iPad will be reordered correctly to Human Interface Guidelines
+            // standards, but on macOS will follow the build order
             IPadFormatMenu(),
             PlatformMenu(
               label: 'Another Test Menu',

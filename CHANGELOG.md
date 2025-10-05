@@ -1,3 +1,8 @@
+## 0.4.1
+
+* Added macOS platform to example project
+* Fixed bugs found inside macOS/other platforms that aren't iOS/iPadOS
+
 ## 0.4.0
 
 * **BREAKING**: Refactored `IPadOSPlatformMenuDelegate` instantiation

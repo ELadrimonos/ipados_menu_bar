@@ -116,7 +116,8 @@ class IPadEditMenu extends IPadMenu {
 
            /// Additional items go in between the "actions" items and the "find"
            /// items
-           PlatformMenuItemGroup(members: [...?additionalItems]),
+           if (additionalItems != null)
+             PlatformMenuItemGroup(members: [...additionalItems]),
            PlatformMenuItemGroup(
              members: [
                PlatformMenuWithIcon(
