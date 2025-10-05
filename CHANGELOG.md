@@ -1,3 +1,17 @@
+## 0.4.0
+
+* **BREAKING**: Refactored `IPadOSPlatformMenuDelegate` instantiation
+  * Constructor is now private (`_internal`)
+  * Use static factory method `IPadOSPlatformMenuDelegate.create()` for creating instances
+  * This ensures proper platform validation and prevents misuse on non-iOS platforms
+* Added `IPadAppMenu`
+  * Adds access to the application menu
+* Updated `IPadWindowMenu`
+  * Added *entrypoint* attribute, in a future will be able to manage multiple windows for your iPad applications
+* Removed `IPadFileMenu` window close callbacks, as it makes more sense to use `WidgetsBindingObserver` to manage app 
+lifecycle state logic
+* Updated README.md to reflect new project feature goals
+
 ## 0.3.1
 
 * Fixed custom menus placement behavior

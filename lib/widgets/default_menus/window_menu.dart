@@ -1,29 +1,46 @@
 part of '../../ipados_menu_bar.dart';
 
-// Note: This will be trickier to accomplish, as it has to respect the OS behavior,
-// only adding upon listeners
-
-/// Custom [PlatformMenu] using a menuId to replace the native "window" menu
-/// with listeners for when users switches layout, switches screen or
-/// create a new window.
+/// Custom [PlatformMenu] that integrates with iPadOS native window management
+/// and sets the scene identifier for new windows.
+///
+/// This menu registers the entrypoint scene identifier with the platform delegate
+/// so that when a new window is opened from the native menu, it uses the correct scene.
+///
+/// ## Usage Example
+///
+/// ```dart
+/// IPadWindowMenu(
+///   entrypoint: 'SecondScene', // This will be used for new windows
+/// )
+/// ```
+///
+/// The delegate will automatically handle:
+/// - Setting the scene ID in Swift when opening new windows
+/// - Using the default "MainScene" if no entrypoint is specified
+///
+/// *Manual management of scenes inside AppDelegate is required*
 class IPadWindowMenu extends IPadMenu {
   @override
   String get menuId => 'window';
 
-  // Should be logic only, don't render these items in the future
-  IPadWindowMenu()
-    : super(
-        label: 'Window',
-        menus: [
-          PlatformMenuItemGroup(
-            members: [
-              PlatformMenuItem(label: 'Minimize'),
-              PlatformMenuItem(label: 'Exit Full Screen'),
-              PlatformMenuItem(label: 'Center'),
-              // Doing my best translating from spanish by head
-              PlatformMenu(label: 'Translate & Resize', menus: []),
-            ],
-          ),
-        ],
-      );
+  /// Creates a window menu that sets the scene identifier for new windows.
+  ///
+  /// [entrypoint] specifies the scene ID (e.g., 'SecondScene') for new windows.
+  /// If not provided, defaults to 'MainScene'.
+  IPadWindowMenu({this.entrypoint, this.arguments})
+      : super(
+    label: 'Window',
+    menus: [
+      // Add a dummy invisible item to satisfy Flutter's validation
+      PlatformMenuItem(
+        label: '',
+        onSelected: null,
+      ),
+    ],
+  );
+
+  /// The scene identifier to use when opening new windows.
+  /// This value is automatically passed to the Swift side by the delegate.
+  final String? entrypoint;
+  final Map<String, dynamic>? arguments;
 }

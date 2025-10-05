@@ -6,7 +6,7 @@ import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
   debugPrint(
     "Platform menu delegate set: ${WidgetsBinding.instance.platformMenuDelegate}",
   );
@@ -22,7 +22,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late IPadOSPlatformMenuDelegate _menuDelegate;
   bool toggledOption = false;
   bool expandedSideBar = false;
 
@@ -75,6 +74,11 @@ class _MyAppState extends State<MyApp> {
               onShowSidebar: () => setState(() {
                 expandedSideBar = !expandedSideBar;
               }),
+            ),
+            IPadAppMenu(
+              additionalItems: [
+                PlatformMenuItem(label: 'App Version')
+              ]
             ),
             PlatformMenu(
               label: 'Test Menu',

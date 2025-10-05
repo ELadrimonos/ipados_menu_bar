@@ -1,8 +1,6 @@
-// Modificaciones para el archivo Dart (ipados_menu_bar.dart)
-
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, defaultTargetPlatform;
 import 'package:flutter/services.dart';
 import 'package:ipados_menu_bar/helpers/icon_converter.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
@@ -15,11 +13,33 @@ const String _kMenuItemClosedMethod = 'Menu.closed';
 
 /// Custom [PlatformMenuDelegate] adding support for menus on iOS, specifically
 /// for the new iPadOS 26 menu bar.
+///
+/// Use [IPadOSPlatformMenuDelegate.create] to instantiate this delegate.
+/// The factory method ensures proper platform validation and automatically
+/// falls back to [DefaultPlatformMenuDelegate] on non-iOS platforms.
+///
+/// Example:
+/// ```dart
+/// WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
+/// ```
 class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
-  IPadOSPlatformMenuDelegate({MethodChannel? channel})
-    : channel = channel ?? const MethodChannel('flutter/ipados_menu'),
-      _idMap = <int, PlatformMenuItem>{} {
-    this.channel.setMethodCallHandler(_methodCallHandler);
+  /// Creates an instance of [IPadOSPlatformMenuDelegate] for iOS platforms,
+  /// or [DefaultPlatformMenuDelegate] for other platforms.
+  ///
+  /// Optionally accepts a custom [channel] for testing purposes.
+  static PlatformMenuDelegate create({MethodChannel? channel}) {
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      return DefaultPlatformMenuDelegate();
+    }
+    return IPadOSPlatformMenuDelegate._internal(
+      channel ?? const MethodChannel('flutter/ipados_menu'),
+      <int, PlatformMenuItem>{},
+    );
+  }
+
+  /// Internal constructor. Use [create] instead.
+  IPadOSPlatformMenuDelegate._internal(this.channel, this._idMap) {
+    channel.setMethodCallHandler(_methodCallHandler);
   }
 
   final MethodChannel channel;

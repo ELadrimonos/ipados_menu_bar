@@ -46,7 +46,7 @@ Add `ipados_menu_bar` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ipados_menu_bar: ^0.3.1
+  ipados_menu_bar: ^0.4.0
 ```
 
 Then run:
@@ -67,7 +67,7 @@ import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate();
+  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
 
   runApp(MyApp());
 }
@@ -201,8 +201,7 @@ Create organized menu hierarchies with:
   - `IPadFormatMenu`: Items for formatting text or other data on your app using Apple's incorporated item with 
   callbacks for your app functionality and additional custom items
   - `IPadViewMenu`: Items to switch between screens or other UI-related actions like showing the sidebar
-  - `IPadWindowMenu`: Listeners for reacting when the window layout changes, a new window is opened, switched screen,
-  etc...
+  - `IPadWindowMenu`: Enables setting an entrypoint for the next window created, thus allowing opening a new window using a different Flutter view and passing arguments
 
 ## 📱 Platform Support
 
@@ -219,9 +218,9 @@ This package is specifically designed for iPadOS 26+ and provides enhanced funct
 | Submenu Nesting                               | ✅      |
 | Dynamic Menu Updates                          | ✅      |
 | Menu Separators                               | ✅      |
-| App Info Custom Children Items                | ❌      |
+| App Info Custom Children Items                | ✅      |
 | Menu Icons Support                            | ✅      |
-| Window Change listeners in dart               | 🚧     |
+| Multiple Windows support                      | 🚧     |
 | Stateful Items (checked, unchecked, mixed)    | ✅     |
 | Keyboard Shortcuts                            | ✅     |
 
