@@ -23,10 +23,16 @@ class IPadWindowMenu extends IPadMenu {
   @override
   String get menuId => 'window';
 
-  /// Creates a window menu that sets the scene identifier for new windows.
+  /// Creates a window menu that defines the scene identifier used when opening new windows.
   ///
-  /// [entrypoint] specifies the scene ID (e.g., 'SecondScene') for new windows.
-  /// If not provided, defaults to 'MainScene'.
+  /// This constructor registers the `entrypoint` (scene identifier) with the platform delegate,
+  /// allowing the operating system to correctly assign the new window to the specified scene.
+  ///
+  /// - [entrypoint]: The name of the scene that will be used when opening new windows (for example, `'SecondScene'`).
+  ///   If not specified, `'MainScene'` is used as the default value.
+  /// - [arguments]: An optional map containing additional arguments passed when creating the new window.
+  /// - [additionalItems]: Extra menu items. These are not displayed on iOS but can be useful on other platforms
+  ///   that require custom window management (for example, macOS or Windows).
   IPadWindowMenu({
     this.entrypoint,
     this.arguments,
@@ -34,10 +40,10 @@ class IPadWindowMenu extends IPadMenu {
   }) : super(
          label: 'Window',
          menus: [
-                 if (defaultTargetPlatform != TargetPlatform.iOS &&
-                     (additionalItems == null || additionalItems.isEmpty))
-                   PlatformMenuItem(label: ''),
-               ],
+           if (defaultTargetPlatform != TargetPlatform.iOS &&
+               (additionalItems == null || additionalItems.isEmpty))
+             PlatformMenuItem(label: ''),
+         ],
        );
 
   /// The scene identifier to use when opening new windows.
