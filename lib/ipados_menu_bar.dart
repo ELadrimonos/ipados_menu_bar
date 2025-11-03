@@ -1,6 +1,7 @@
 export 'ipados_platform_menu_delegate.dart';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 part 'widgets/default_menus/abstract_menu.dart';

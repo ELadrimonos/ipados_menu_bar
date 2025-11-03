@@ -7,5 +7,13 @@ class IPadAppMenu extends IPadMenu {
   String get menuId => 'application';
 
   IPadAppMenu({List<PlatformMenuItem>? additionalItems})
-    : super(label: 'App Info', menus: [...?additionalItems]);
+    : super(
+        label: 'App Info',
+        menus: (additionalItems != null && additionalItems.isNotEmpty)
+            ? additionalItems
+            : [
+                if (defaultTargetPlatform != TargetPlatform.iOS)
+                  PlatformMenuItem(label: ''),
+              ],
+      );
 }
