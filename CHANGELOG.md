@@ -2,6 +2,7 @@
 
 * Fixed `IPadMenu` behaviors on macOS (and other non iOS platforms) that either caused crashing or didn't show a menu when additionalItems was null or empty
 * Updated `IPadWindowMenu` documentation
+* Distributed example folder into different example projects
 
 ## 0.4.1
 

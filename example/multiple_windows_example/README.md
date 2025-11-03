@@ -1,6 +1,9 @@
-# ipad_os_26_menubar_example
+# Multiple Windows Example
 
-Demonstrates how to use the ipad_os_26_menubar plugin.
+Demonstrates how to use the `ipados_menu_bar` plugin in an application with multiple windows or screens, showcasing how to display different menu bars for each context.
+
+> [!IMPORTANT]
+> This example is a work in progress and is only functional on the `multiple_windows_support` branch.
 
 ## Getting Started
 

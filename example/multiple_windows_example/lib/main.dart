@@ -1,7 +1,6 @@
 import 'package:cupertino_sidebar/cupertino_sidebar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'dart:async';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 
 void main() {
@@ -75,7 +74,9 @@ class _MyAppState extends State<MyApp> {
               onRedo: () => debugPrint('Redo action!'),
             ),
             IPadFileMenu(),
-            IPadWindowMenu(),
+            IPadWindowMenu(
+              entrypoint: "SecondScene"
+            ),
             IPadViewMenu(
               onShowSidebar: () => setState(() {
                 expandedSideBar = !expandedSideBar;
