@@ -57,12 +57,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) async {
-    if (kDebugMode) {
-      debugPrint(
-        "IpadOSPlatformMenuDelegate.setMenus called with ${topLevelMenus.length} menus",
-      );
-    }
-
     _idMap.clear();
     _presentDefaultMenus.clear();
     _defaultMenuItems.clear();
@@ -71,14 +65,11 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
-        if (kDebugMode) debugPrint("Processing menu: ${childItem.label}");
-
         if (childItem is IPadMenu) {
           _presentDefaultMenus.add(childItem.menuId);
           final menuItems = _getChildrenRepresentation(childItem.menus);
           await _processIconsAndSetMenus(menuItems);
           _defaultMenuItems[childItem.menuId] = menuItems;
-          if (kDebugMode) debugPrint("Found default menu: ${childItem.menuId}");
         } else {
           final customMenuItems = _customToChannelRepresentation(childItem);
           await _processIconsAndSetMenus(customMenuItems);
@@ -92,10 +83,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       'defaultMenus': _presentDefaultMenus.toList(),
       'defaultMenuItems': _defaultMenuItems,
     };
-
-    if (kDebugMode) {
-      debugPrint("Sending menu payload with processed icons and shortcuts");
-    }
 
     channel.invokeMethod<void>(_kMenuSetMethod, payload);
   }
@@ -264,24 +251,15 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   Future<void> _methodCallHandler(MethodCall call) async {
-    if (kDebugMode) {
-      debugPrint(
-        "Method call received: ${call.method} with arguments: ${call.arguments}",
-      );
-    }
-
     final int id = call.arguments as int;
     if (!_idMap.containsKey(id)) {
-      if (kDebugMode) debugPrint('Menu event for unknown id $id');
       return;
     }
 
     final PlatformMenuItem item = _idMap[id]!;
-    if (kDebugMode) debugPrint("Found menu item: ${item.label}");
 
     switch (call.method) {
       case _kMenuSelectedCallbackMethod:
-        if (kDebugMode) debugPrint("Executing onSelected for: ${item.label}");
         item.onSelected?.call();
         if (item.onSelectedIntent != null) {
           final BuildContext? context =
@@ -297,8 +275,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       case _kMenuItemClosedMethod:
         item.onClose?.call();
         break;
-      default:
-        if (kDebugMode) debugPrint('Unknown menu method: ${call.method}');
     }
   }
 
@@ -309,7 +285,6 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       );
       return result;
     } catch (e) {
-      if (kDebugMode) debugPrint('Error getting available default menus: $e');
       return null;
     }
   }
