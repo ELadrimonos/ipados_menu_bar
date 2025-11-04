@@ -13,7 +13,20 @@ const String _kMenuItemClosedMethod = 'Menu.closed';
 
 /// Custom [PlatformMenuDelegate] adding support for menus on iOS, specifically
 /// for the new iPadOS 26 menu bar with multi-scene support.
+///
+/// Use [IPadOSPlatformMenuDelegate.create] to instantiate this delegate.
+/// The factory method ensures proper platform validation and automatically
+/// falls back to [DefaultPlatformMenuDelegate] on non-iOS platforms.
+///
+/// Example:
+/// ```dart
+/// WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
+/// ```
 class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
+  /// Creates an instance of [IPadOSPlatformMenuDelegate] for iOS platforms,
+  /// or [DefaultPlatformMenuDelegate] for other platforms.
+  ///
+  /// Optionally accepts a custom [channel] for testing purposes.
   static PlatformMenuDelegate create({MethodChannel? channel}) {
     if (defaultTargetPlatform != TargetPlatform.iOS) {
       return DefaultPlatformMenuDelegate();
@@ -24,6 +37,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     );
   }
 
+  /// Internal constructor. Use [create] instead.
   IPadOSPlatformMenuDelegate._internal(this.channel, this._idMap) {
     channel.setMethodCallHandler(_methodCallHandler);
   }
@@ -71,6 +85,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
+        if (kDebugMode) debugPrint("Processing menu: ${childItem.label}");
+
         if (childItem is IPadMenu) {
           _presentDefaultMenus.add(childItem.menuId);
           final menuItems = _getChildrenRepresentation(childItem.menus);
@@ -242,6 +258,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
       if (iconBytes != null) {
         menuItem['iconBytes'] = iconBytes;
       }
+      // Remove the iconData dart instance, we now work with bytes
       menuItem.remove('iconData');
     }
 
@@ -278,15 +295,24 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   Future<void> _methodCallHandler(MethodCall call) async {
+    if (kDebugMode) {
+      debugPrint(
+        "Method call received: ${call.method} with arguments: ${call.arguments}",
+      );
+    }
+
     final int id = call.arguments as int;
     if (!_idMap.containsKey(id)) {
+      if (kDebugMode) debugPrint('Menu event for unknown id $id');
       return;
     }
 
     final PlatformMenuItem item = _idMap[id]!;
+    if (kDebugMode) debugPrint("Found menu item: ${item.label}");
 
     switch (call.method) {
       case _kMenuSelectedCallbackMethod:
+        if (kDebugMode) debugPrint("Executing onSelected for: ${item.label}");
         item.onSelected?.call();
         if (item.onSelectedIntent != null) {
           final BuildContext? context =

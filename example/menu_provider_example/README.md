@@ -1,6 +1,6 @@
-# ipad_os_26_menubar_example
+# Menu Provider Example
 
-Demonstrates how to use the ipad_os_26_menubar plugin.
+Demonstrates how to use the `ipados_menu_bar` plugin with a `ChangeNotifierProvider` to dynamically update the menu bar based on the application's state or the currently displayed screen.
 
 ## Getting Started
 

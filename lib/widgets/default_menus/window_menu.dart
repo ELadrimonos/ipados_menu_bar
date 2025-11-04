@@ -1,4 +1,3 @@
-// window_menu.dart
 part of '../../ipados_menu_bar.dart';
 
 /// Custom [PlatformMenu] that integrates with iPadOS native window management
@@ -18,25 +17,34 @@ part of '../../ipados_menu_bar.dart';
 /// The delegate will automatically handle:
 /// - Setting the scene ID in Swift when opening new windows
 /// - Using the default "MainScene" if no entrypoint is specified
+///
+/// *Manual management of scenes inside AppDelegate is required*
 class IPadWindowMenu extends IPadMenu {
   @override
   String get menuId => 'window';
 
-  /// Creates a window menu that sets the scene identifier for new windows.
+  /// Creates a window menu that defines the scene identifier used when opening new windows.
   ///
-  /// [entrypoint] specifies the scene ID (e.g., 'SecondScene') for new windows.
-  /// If not provided, defaults to 'MainScene'.
-  IPadWindowMenu({this.entrypoint, this.arguments})
-    : super(
-        label: 'Window',
-        menus: [
-          // Add a dummy invisible item to satisfy Flutter's validation
-          PlatformMenuItem(
-            label: '', // Empty label - won't be shown in native menu
-            onSelected: null, // No action - native items handle this
-          ),
-        ],
-      );
+  /// This constructor registers the `entrypoint` (scene identifier) with the platform delegate,
+  /// allowing the operating system to correctly assign the new window to the specified scene.
+  ///
+  /// - [entrypoint]: The name of the scene that will be used when opening new windows (for example, `'SecondScene'`).
+  ///   If not specified, `'MainScene'` is used as the default value.
+  /// - [arguments]: An optional map containing additional arguments passed when creating the new window.
+  /// - [additionalItems]: Extra menu items. These are not displayed on iOS but can be useful on other platforms
+  ///   that require custom window management (for example, macOS or Windows).
+  IPadWindowMenu({
+    this.entrypoint,
+    this.arguments,
+    List<PlatformMenuItem>? additionalItems,
+  }) : super(
+         label: 'Window',
+         menus: [
+           if (defaultTargetPlatform != TargetPlatform.iOS &&
+               (additionalItems == null || additionalItems.isEmpty))
+             PlatformMenuItem(label: ''),
+         ],
+       );
 
   /// The scene identifier to use when opening new windows.
   /// This value is automatically passed to the Swift side by the delegate.

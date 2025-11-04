@@ -1,9 +1,29 @@
+## 0.4.2
+
+* Fixed `IPadMenu` behaviors on macOS (and other non iOS platforms) that either caused crashing or didn't show a menu when additionalItems was null or empty
+* Updated `IPadWindowMenu` documentation
+* Distributed example folder into different example projects
+
+## 0.4.1
+
+* Added macOS platform to example project
+* Fixed bugs found inside macOS/other platforms that aren't iOS/iPadOS
+
+## 0.4.0
+
+* **BREAKING**: Refactored `IPadOSPlatformMenuDelegate` instantiation
+  * Constructor is now private (`_internal`)
+  * Use static factory method `IPadOSPlatformMenuDelegate.create()` for creating instances
+  * This ensures proper platform validation and prevents misuse on non-iOS platforms
+* Added `IPadAppMenu`
+  * Adds access to the application menu
+* Updated `IPadWindowMenu`
+  * Added *entrypoint* attribute, in a future will be able to manage multiple windows for your iPad applications
+* Removed `IPadFileMenu` window close callbacks, as it makes more sense to use `WidgetsBindingObserver` to manage app 
+lifecycle state logic
+* Updated README.md to reflect new project feature goals
+
 ## 0.3.1
-
-* Fixed custom menus placement behavior
-  * Now custom menus follow a *left to right* order correctly following the *top to bottom* widget tree placement
-
-## 0.3.0
 
 * Fixed custom menus placement behavior
   * Now custom menus follow a *left to right* order correctly following the *top to bottom* widget tree placement

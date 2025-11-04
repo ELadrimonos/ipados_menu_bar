@@ -109,10 +109,10 @@ packages:
   ipados_menu_bar:
     dependency: "direct main"
     description:
-      path: ".."
+      path: "../.."
       relative: true
     source: path
-    version: "0.3.1"
+    version: "0.4.2"
   leak_tracker:
     dependency: transitive
     description:
