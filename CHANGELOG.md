@@ -1,3 +1,10 @@
+## 0.5.0
+
+* Added `iconWidget` attribute to `PlatformMenuItemWithIcon`, `PlatformMenuWithIcon` and `StatefulPlatformMenuItemWithIcon`
+  * Allows rendering Flutter widgets as an static image in the native iPadOS menu bar
+  * Only one of `icon` or `iconWidget` can be set at a time
+* Fixed icons not reducing transparency when item is disabled
+
 ## 0.4.3
 
 * Added top level example README file

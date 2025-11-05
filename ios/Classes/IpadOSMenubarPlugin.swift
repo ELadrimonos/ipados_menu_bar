@@ -340,6 +340,7 @@ extension IpadOSMenubarPlugin {
 
             let enabled = childData["enabled"] as? Bool ?? true
             let iconImage = createImageFromBytes(childData["iconBytes"])
+            let displayedImage = applyDisabledAppearance(to: iconImage, enabled: enabled)
             let shortcut = childData["shortcut"] as? [String: Any]
             let menuItemState = parseMenuItemState(childData["state"])
 
@@ -350,7 +351,7 @@ extension IpadOSMenubarPlugin {
                 if !submenuElements.isEmpty {
                     let submenu = UIMenu(
                         title: title,
-                        image: iconImage,
+                        image: displayedImage,
                         options: enabled ? [] : [.displayInline],
                         children: submenuElements
                     )
@@ -367,7 +368,7 @@ extension IpadOSMenubarPlugin {
                         usedKeyCommands.insert(keyCommandIdentifier)
                         let keyCommand = UIKeyCommand(
                             title: title,
-                            image: iconImage,
+                            image: displayedImage,
                             action: #selector(UIResponder.handleKeyCommand(_:)),
                             input: input, modifierFlags: modifiers,
                             propertyList: id,
@@ -380,7 +381,7 @@ extension IpadOSMenubarPlugin {
                 } else {
                     let action = UIAction(
                         title: title,
-                        image: iconImage,
+                        image: displayedImage,
                         attributes: enabled ? [] : [.disabled],
                         state: menuItemState
 
@@ -406,34 +407,47 @@ extension IpadOSMenubarPlugin {
             return nil
         }
 
-        let templateImage = image.withRenderingMode(.alwaysTemplate)
-
-        let targetSize = CGSize(width: 18, height: 18)
-
-        UIGraphicsBeginImageContextWithOptions(targetSize, false, 0.0)
-
-        UIColor.label.setFill()
-
-        templateImage.draw(in: CGRect(origin: .zero, size: targetSize))
-
-        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        return resizedImage?.withRenderingMode(.alwaysTemplate)
+        let targetSize = CGSize(width: 16, height: 16)
+        guard let resizedImage = resizeImageWithQuality(image, targetSize: targetSize) else {
+            return image.withRenderingMode(.alwaysOriginal)
+        }
+        return resizedImage.withRenderingMode(.alwaysOriginal)
     }
 
-    private func createSystemColoredImage(from originalImage: UIImage?) -> UIImage? {
-        guard let image = originalImage else { return nil }
-
-        return image.withTintColor(.label, renderingMode: .alwaysTemplate)
+    private func applyDisabledAppearance(to image: UIImage?, enabled: Bool) -> UIImage? {
+        guard let image = image else { return nil }
+        if enabled { return image }
+        // Draw the original image with reduced alpha to make it appear dimmed when disabled
+        let targetSize = image.size
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = image.scale
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+        let dimmed = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize), blendMode: .normal, alpha: 0.4)
+        }
+        return dimmed.withRenderingMode(.alwaysOriginal)
     }
 
     private func resizeImageWithQuality(_ image: UIImage?, targetSize: CGSize) -> UIImage? {
         guard let image = image else { return nil }
 
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = UIScreen.main.scale
+        format.opaque = false
+
+        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+
+        // Preserve aspect ratio and center within target rect
+        let aspect = min(targetSize.width / image.size.width, targetSize.height / image.size.height)
+        let newSize = CGSize(width: image.size.width * aspect, height: image.size.height * aspect)
+        let origin = CGPoint(
+            x: (targetSize.width - newSize.width) / 2.0,
+            y: (targetSize.height - newSize.height) / 2.0
+        )
+
         return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: targetSize))
+            image.draw(in: CGRect(origin: origin, size: newSize))
         }
     }
 
@@ -479,3 +493,4 @@ extension IpadOSMenubarPlugin {
         }
     }
 }
+
