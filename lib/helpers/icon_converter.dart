@@ -55,9 +55,9 @@ class IconConverter {
   }
 
   static Future<Uint8List?> iconWidgetToBytes(
-      Widget widget, {
-        double size = 24.0,
-      }) async {
+    Widget widget, {
+    double size = 24.0,
+  }) async {
     try {
       if (size <= 0) {
         debugPrint('Invalid size: $size');
@@ -76,7 +76,7 @@ class IconConverter {
         ),
       );
 
-      return await _renderWidgetToBytes(widget, Size(size, size));
+      return await _renderWidgetToBytes(wrappedWidget, Size(size, size));
     } catch (e) {
       debugPrint('Error converting icon widget to bytes: $e');
       return null;
@@ -84,9 +84,9 @@ class IconConverter {
   }
 
   static Future<Uint8List?> _renderWidgetToBytes(
-      Widget widget,
-      Size size,
-      ) async {
+    Widget widget,
+    Size size,
+  ) async {
     try {
       final repaintBoundary = RenderRepaintBoundary();
 
@@ -98,7 +98,7 @@ class IconConverter {
         configuration: ViewConfiguration(
           logicalConstraints: BoxConstraints(
             minWidth: size.width,
-            minHeight: size.height
+            minHeight: size.height,
           ),
           devicePixelRatio: 3.0,
         ),

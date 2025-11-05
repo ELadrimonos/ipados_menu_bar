@@ -120,7 +120,9 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'label': item.label,
         'enabled': true,
         'children': children,
-        'iconData': (item is PlatformMenuWithIcon) ? item.icon ?? item.iconWidget : null,
+        'iconData': (item is PlatformMenuWithIcon)
+            ? item.icon ?? item.iconWidget
+            : null,
         'shortcut': _extractShortcut(item.shortcut),
       });
     } else if (item is PlatformMenuItemGroup) {
@@ -137,7 +139,9 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'id': _getId(item),
         'label': item.label,
         'enabled': enabled,
-        'iconData': (item is PlatformMenuItemWithIcon) ? item.icon ?? item.iconWidget : null,
+        'iconData': (item is PlatformMenuItemWithIcon)
+            ? item.icon ?? item.iconWidget
+            : null,
         'shortcut': _extractShortcut(item.shortcut),
       };
 

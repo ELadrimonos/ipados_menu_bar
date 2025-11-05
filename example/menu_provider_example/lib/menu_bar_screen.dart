@@ -132,6 +132,11 @@ class _MenuBarScreenState extends State<MenuBarScreen> with RouteAware {
                   print("Current value: ${_counter}");
                 },
               ),
+              PlatformMenuItemWithIcon(
+                iconWidget: FlutterLogo(),
+                label: 'Disabled Widget Icon',
+                onSelected: null,
+              ),
             ],
           ),
         ],
