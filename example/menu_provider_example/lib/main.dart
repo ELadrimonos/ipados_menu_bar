@@ -8,7 +8,8 @@ final routeObserver = RouteObserver<ModalRoute<void>>();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.platformMenuDelegate = IPadOSPlatformMenuDelegate.create();
+  WidgetsBinding.instance.platformMenuDelegate =
+      IPadOSPlatformMenuDelegate.create();
   runApp(
     ChangeNotifierProvider(
       create: (context) => MenuProvider(),

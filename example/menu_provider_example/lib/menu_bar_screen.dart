@@ -14,17 +14,12 @@ class MenuBarScreen extends StatefulWidget {
   State<MenuBarScreen> createState() => _MenuBarScreenState();
 }
 
-enum ActionType {
-  none,
-  increment,
-  decrement
-}
+enum ActionType { none, increment, decrement }
 
 class _MenuBarScreenState extends State<MenuBarScreen> with RouteAware {
   int _counter = 0;
   bool _isActive = false;
   ActionType _lastAction = ActionType.none;
-
 
   @override
   void initState() {
@@ -76,21 +71,22 @@ class _MenuBarScreenState extends State<MenuBarScreen> with RouteAware {
 
     final menuProvider = Provider.of<MenuProvider>(context, listen: false);
     menuProvider.setMenus([
-      IPadAppMenu(
-      ),
+      IPadAppMenu(),
       IPadFileMenu(),
       IPadEditMenu(
-          onUndo: _lastAction == ActionType.none ? null : () {
-            setState(() {
-              if (_lastAction == ActionType.increment) {
-                  _counter--;
-              } else {
-                _counter++;
-              }
-              _lastAction = ActionType.none;
-            });
-            _updateMenus();
-          },
+        onUndo: _lastAction == ActionType.none
+            ? null
+            : () {
+                setState(() {
+                  if (_lastAction == ActionType.increment) {
+                    _counter--;
+                  } else {
+                    _counter++;
+                  }
+                  _lastAction = ActionType.none;
+                });
+                _updateMenus();
+              },
       ),
       IPadFormatMenu(),
       PlatformMenu(
@@ -132,7 +128,7 @@ class _MenuBarScreenState extends State<MenuBarScreen> with RouteAware {
                 onSelected: () {
                   print("Current value: ${_counter}");
                 },
-              )
+              ),
             ],
           ),
         ],
@@ -162,7 +158,9 @@ class _MenuBarScreenState extends State<MenuBarScreen> with RouteAware {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NoMenuBarScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const NoMenuBarScreen(),
+                  ),
                 );
               },
               child: const Text('Go to Screen Without Menu Bar'),

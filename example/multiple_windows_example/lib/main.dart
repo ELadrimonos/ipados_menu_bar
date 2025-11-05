@@ -74,9 +74,7 @@ class _MyAppState extends State<MyApp> {
               onRedo: () => debugPrint('Redo action!'),
             ),
             IPadFileMenu(),
-            IPadWindowMenu(
-              entrypoint: "SecondScene"
-            ),
+            IPadWindowMenu(entrypoint: "SecondScene"),
             IPadViewMenu(
               onShowSidebar: () => setState(() {
                 expandedSideBar = !expandedSideBar;
