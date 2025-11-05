@@ -19,6 +19,7 @@
 - [🧭 Human Interface Guidelines](#-human-interface-guidelines)
 - [🚀 Features](#-features)
 - [📦 Installation](#-installation)
+- [📚 Examples](#-examples)
 - [🏁 Getting Started](#-getting-started)
 - [🎛️ Customization Options](#️-customization-options)
 - [📱 Platform Support](#-platform-support)
@@ -46,7 +47,7 @@ Add `ipados_menu_bar` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ipados_menu_bar: ^0.4.2
+  ipados_menu_bar: ^0.4.3
 ```
 
 Then run:
@@ -54,6 +55,18 @@ Then run:
 ```bash
 flutter pub get
 ```
+
+## 📚 Examples
+
+Explore practical use cases demonstrating advanced features and integrations:
+
+- **Menu Provider Example**  
+  Demonstrates how to dynamically manage menus using a custom provider.  
+  🔗 [View on GitHub](https://github.com/ELadrimonos/ipados_menu_bar/tree/main/example/menu_provider_example)
+
+- **Multiple Windows Example**  
+  Shows how to open and manage multiple windows with different Flutter views and arguments.  
+  🔗 [View on GitHub](https://github.com/ELadrimonos/ipados_menu_bar/tree/main/example/multiple_windows_example)
 
 ## 🏁 Getting Started
 

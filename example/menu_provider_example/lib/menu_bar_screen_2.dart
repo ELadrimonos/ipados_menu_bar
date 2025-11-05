@@ -66,18 +66,13 @@ class _MenuBarScreen2State extends State<MenuBarScreen2> with RouteAware {
 
     final menuProvider = Provider.of<MenuProvider>(context, listen: false);
     menuProvider.setMenus([
-      IPadAppMenu(
-          additionalItems: [PlatformMenuItem(label: 'New Menu Item')]
-      ),
+      IPadAppMenu(additionalItems: [PlatformMenuItem(label: 'New Menu Item')]),
       PlatformMenu(
         label: 'Another Custom Menu',
         menus: [
           PlatformMenuItemGroup(
             members: [
-              PlatformMenuItem(
-                label: 'Test Menu 3',
-                onSelected: () {},
-              )
+              PlatformMenuItem(label: 'Test Menu 3', onSelected: () {}),
             ],
           ),
         ],

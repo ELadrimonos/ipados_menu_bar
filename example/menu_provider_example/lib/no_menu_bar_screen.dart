@@ -83,7 +83,10 @@ class _NoMenuBarScreenState extends State<NoMenuBarScreen> with RouteAware {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const MenuBarScreen2(title: 'Screen With Menu Bar 2')),
+              MaterialPageRoute(
+                builder: (context) =>
+                    const MenuBarScreen2(title: 'Screen With Menu Bar 2'),
+              ),
             );
           },
           child: const Text('Go to Screen With Menu Bar 2'),
