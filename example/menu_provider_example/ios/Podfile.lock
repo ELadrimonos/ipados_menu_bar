@@ -1,6 +1,6 @@
 PODS:
   - Flutter (1.0.0)
-  - ipados_menu_bar (0.4.2):
+  - ipados_menu_bar (0.4.3):
     - Flutter
 
 DEPENDENCIES:
@@ -15,7 +15,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  ipados_menu_bar: 33bad335e2b85fc832fa3ec650c0779142cd88f0
+  ipados_menu_bar: b416d4e5061f2800ae898ae55c046d7d9a599617
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
 

@@ -94,8 +94,9 @@ class _MenuBarScreenState extends State<MenuBarScreen> with RouteAware {
         menus: [
           PlatformMenuItemGroup(
             members: [
-              PlatformMenuItem(
+              PlatformMenuItemWithIcon(
                 label: 'Increment Counter',
+                icon: Icons.add,
                 onSelected: () {
                   setState(() {
                     _counter++;
@@ -104,8 +105,9 @@ class _MenuBarScreenState extends State<MenuBarScreen> with RouteAware {
                   _updateMenus();
                 },
               ),
-              PlatformMenuItem(
+              PlatformMenuItemWithIcon(
                 label: 'Decrement Counter',
+                icon: Icons.remove,
                 onSelected: () {
                   setState(() {
                     _counter--;
@@ -123,7 +125,8 @@ class _MenuBarScreenState extends State<MenuBarScreen> with RouteAware {
         menus: [
           PlatformMenuItemGroup(
             members: [
-              PlatformMenuItem(
+              PlatformMenuItemWithIcon(
+                iconWidget: FlutterLogo(),
                 label: 'Print counter value',
                 onSelected: () {
                   print("Current value: ${_counter}");

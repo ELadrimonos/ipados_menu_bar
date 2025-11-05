@@ -120,7 +120,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'label': item.label,
         'enabled': true,
         'children': children,
-        'iconData': (item is PlatformMenuWithIcon) ? item.icon : null,
+        'iconData': (item is PlatformMenuWithIcon) ? item.icon ?? item.iconWidget : null,
         'shortcut': _extractShortcut(item.shortcut),
       });
     } else if (item is PlatformMenuItemGroup) {
@@ -137,7 +137,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'id': _getId(item),
         'label': item.label,
         'enabled': enabled,
-        'iconData': (item is PlatformMenuItemWithIcon) ? item.icon : null,
+        'iconData': (item is PlatformMenuItemWithIcon) ? item.icon ?? item.iconWidget : null,
         'shortcut': _extractShortcut(item.shortcut),
       };
 
@@ -200,22 +200,32 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   Future<void> _processIconsRecursively(Map<String, Object?> menuItem) async {
-    // Procesar icono del item actual
     if (menuItem.containsKey('iconData') && menuItem['iconData'] != null) {
-      final iconData = menuItem['iconData'] as IconData;
+      final iconDataValue = menuItem['iconData'];
+      if (iconDataValue is IconData) {
+        final iconBytes = await IconConverter.iconToBytes(
+          iconDataValue,
+          size: 54.0,
+          color: CupertinoColors
+              .black, // Use black color, will be adapted in Swift side
+        );
 
-      final iconBytes = await IconConverter.iconToBytes(
-        iconData,
-        size: 54.0,
-        color: CupertinoColors
-            .black, // Use black color, will be adapted in Swift side
-      );
+        if (iconBytes != null) {
+          menuItem['iconBytes'] = iconBytes;
+        }
+        // Remove the iconData dart instance, we now work with bytes
+        menuItem.remove('iconData');
+      } else if (iconDataValue is Widget) {
+        final iconBytes = await IconConverter.iconWidgetToBytes(
+          iconDataValue,
+          size: 8.0,
+        );
 
-      if (iconBytes != null) {
-        menuItem['iconBytes'] = iconBytes;
+        if (iconBytes != null) {
+          menuItem['iconBytes'] = iconBytes;
+        }
+        menuItem.remove('iconData');
       }
-      // Remove the iconData dart instance, we now work with bytes
-      menuItem.remove('iconData');
     }
 
     if (menuItem.containsKey('children')) {
