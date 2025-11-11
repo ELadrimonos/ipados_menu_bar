@@ -67,6 +67,7 @@ class _MenuBarScreen2State extends State<MenuBarScreen2> with RouteAware {
     final menuProvider = Provider.of<MenuProvider>(context, listen: false);
     menuProvider.setMenus([
       IPadAppMenu(additionalItems: [PlatformMenuItem(label: 'New Menu Item')]),
+      IPadEditMenu(),
       PlatformMenuWithIcon(
         iconWidget: FlutterLogo(),
         label: 'Another Custom Menu',
@@ -114,7 +115,16 @@ class _MenuBarScreen2State extends State<MenuBarScreen2> with RouteAware {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: <Widget>[
+            SizedBox(
+              width: 200,
+              child: TextField(
+                decoration: InputDecoration(
+                  labelText: "Try Dictation Here",
+                ),
+              ),
+            ),
             const Text('This is the second screen with a menu bar.'),
             ElevatedButton(
               onPressed: () {
