@@ -1,3 +1,10 @@
+## 0.5.1
+
+* Improved macOS functionality by adding the default native menu actions from `IPadAppMenu` and `IPadWindowMenu` 
+using `PlatformProvidedMenuItem`
+  * This means that actions such as *About*, *Quit*, *Services* and *Window layout* are accesible just by adding these 
+  two widgets to the tree
+
 ## 0.5.0
 
 * Added `iconWidget` attribute to `PlatformMenuItemWithIcon`, `PlatformMenuWithIcon` and `StatefulPlatformMenuItemWithIcon`
