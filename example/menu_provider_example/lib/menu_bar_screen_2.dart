@@ -120,9 +120,7 @@ class _MenuBarScreen2State extends State<MenuBarScreen2> with RouteAware {
             SizedBox(
               width: 200,
               child: TextField(
-                decoration: InputDecoration(
-                  labelText: "Try Dictation Here",
-                ),
+                decoration: InputDecoration(labelText: "Try Dictation Here"),
               ),
             ),
             const Text('This is the second screen with a menu bar.'),
