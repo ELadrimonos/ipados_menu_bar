@@ -1,3 +1,7 @@
+## 0.5.2
+
+- Quick hotfix adding a "No items" label to an empty `IPadFileMenu` on non-iPadOS platforms instead of an empty string
+
 ## 0.5.1
 
 * Improved macOS functionality by adding the default native menu actions from `IPadAppMenu` and `IPadWindowMenu` 

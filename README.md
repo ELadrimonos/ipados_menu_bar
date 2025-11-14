@@ -47,7 +47,7 @@ Add `ipados_menu_bar` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ipados_menu_bar: ^0.5.1
+  ipados_menu_bar: ^0.5.2
 ```
 
 Then run:
