@@ -6,7 +6,8 @@ import 'package:flutter/rendering.dart';
 /// Helper class with constant methods to send [IconData] as image data to
 /// *Swift*, using the data in a [UIImage].
 class IconConverter {
-  /// Converts an IconData to PNG bytes
+  /// Converts an [IconData] into PNG bytes by drawing the glyph on a canvas.
+  /// Produces a sharp result using an internal scale factor.
   static Future<Uint8List?> iconToBytes(
     IconData iconData, {
     double size = 24.0,
@@ -54,6 +55,8 @@ class IconConverter {
     }
   }
 
+  /// Renders a widget representing an icon and converts it into PNG bytes.
+  /// Useful when visual styling or layout beyond a simple glyph is needed.
   static Future<Uint8List?> iconWidgetToBytes(
     Widget widget, {
     double size = 24.0,

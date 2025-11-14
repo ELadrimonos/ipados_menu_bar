@@ -1,6 +1,7 @@
 ## 0.5.2
 
 - Quick hotfix adding a "No items" label to an empty `IPadFileMenu` on non-iPadOS platforms instead of an empty string
+- Updated documentation for `IconConverter.iconWidgetToBytes`
 
 ## 0.5.1
 
