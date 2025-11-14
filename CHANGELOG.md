@@ -2,6 +2,7 @@
 
 - Quick hotfix adding a "No items" label to an empty `IPadFileMenu` on non-iPadOS platforms instead of an empty string
 - Updated documentation for `IconConverter.iconWidgetToBytes`
+- [Flutter 3.38's UISceneDelegate migration](https://docs.flutter.dev/release/breaking-changes/uiscenedelegate#migration-guide-for-flutter-apps)
 
 ## 0.5.1
 
