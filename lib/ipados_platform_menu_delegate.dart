@@ -47,13 +47,14 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   int _serial = 0;
   BuildContext? _lockedContext;
 
+  // Track which default menus are present
   final Set<String> _presentDefaultMenus = <String>{};
   final Map<String, List<Map<String, Object?>>> _defaultMenuItems =
-      <String, List<Map<String, Object?>>>{};
+  <String, List<Map<String, Object?>>>{};
   String? _currentEntrypoint;
   Map<String, dynamic>? _currentWindowPayload;
   final List<Map<String, Object?>> _presentCustomMenus =
-      <Map<String, Object?>>[];
+  <Map<String, Object?>>[];
 
   void _resendCurrentMenus() {
     if (_presentDefaultMenus.isNotEmpty || _defaultMenuItems.isNotEmpty) {
@@ -85,7 +86,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
-        if (kDebugMode) debugPrint("Processing menu: ${childItem.label}");
+        debugPrint("Processing menu: ${childItem.label}");
 
         if (childItem is IPadMenu) {
           _presentDefaultMenus.add(childItem.menuId);
@@ -135,8 +136,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   }
 
   List<Map<String, Object?>> _getChildrenRepresentation(
-    List<PlatformMenuItem> items,
-  ) {
+      List<PlatformMenuItem> items,) {
     final List<Map<String, Object?>> result = <Map<String, Object?>>[];
     for (final PlatformMenuItem item in items) {
       result.addAll(_customToChannelRepresentation(item));
@@ -152,8 +152,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   /// Transforms our flutter widgets into a data map for swift
   List<Map<String, Object?>> _customToChannelRepresentation(
-    PlatformMenuItem item,
-  ) {
+      PlatformMenuItem item,) {
     final List<Map<String, Object?>> result = [];
 
     if (item is PlatformMenu) {
@@ -167,7 +166,9 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'label': item.label,
         'enabled': true,
         'children': children,
-        'iconData': (item is PlatformMenuWithIcon) ? item.icon : null,
+        'iconData': (item is PlatformMenuWithIcon)
+            ? item.icon ?? item.iconWidget
+            : null,
         'shortcut': _extractShortcut(item.shortcut),
       });
     } else if (item is PlatformMenuItemGroup) {
@@ -184,7 +185,9 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
         'id': _getId(item),
         'label': item.label,
         'enabled': enabled,
-        'iconData': (item is PlatformMenuItemWithIcon) ? item.icon : null,
+        'iconData': (item is PlatformMenuItemWithIcon)
+            ? item.icon ?? item.iconWidget
+            : null,
         'shortcut': _extractShortcut(item.shortcut),
       };
 
@@ -232,14 +235,14 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     if (activator.control) modifiers.add('control');
     if (activator.shift) modifiers.add('shift');
     if (activator.alt) modifiers.add('alt');
-    if (activator.meta) modifiers.add('meta');
+    if (activator.meta) modifiers.add('meta'); // Command key on macOS
 
     return modifiers;
   }
 
+  // Process before sending anything
   Future<void> _processIconsAndSetMenus(
-    List<Map<String, Object?>> menus,
-  ) async {
+      List<Map<String, Object?>> menus,) async {
     for (final menu in menus) {
       await _processIconsRecursively(menu);
     }
@@ -247,111 +250,100 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
 
   Future<void> _processIconsRecursively(Map<String, Object?> menuItem) async {
     if (menuItem.containsKey('iconData') && menuItem['iconData'] != null) {
-      final iconData = menuItem['iconData'] as IconData;
+      final iconDataValue = menuItem['iconData'];
+      if (iconDataValue is IconData) {
+        final iconBytes = await IconConverter.iconToBytes(
+          iconDataValue,
+          size: 54.0,
+          color: CupertinoColors
+              .black, // Use black color, will be adapted in Swift side
+        );
 
-      final iconBytes = await IconConverter.iconToBytes(
-        iconData,
-        size: 54.0,
-        color: CupertinoColors.black,
-      );
+        if (iconBytes != null) {
+          menuItem['iconBytes'] = iconBytes;
+        }
+        // Remove the iconData dart instance, we now work with bytes
+        menuItem.remove('iconData');
+      } else if (iconDataValue is Widget) {
+        final iconBytes = await IconConverter.iconWidgetToBytes(
+          iconDataValue,
+          size: 8.0,
+        );
 
-      if (iconBytes != null) {
-        menuItem['iconBytes'] = iconBytes;
+        if (iconBytes != null) {
+          menuItem['iconBytes'] = iconBytes;
+        }
+        menuItem.remove('iconData');
       }
-      // Remove the iconData dart instance, we now work with bytes
-      menuItem.remove('iconData');
     }
-
     if (menuItem.containsKey('children')) {
-      final children = menuItem['children'] as List<Map<String, Object?>>;
-      for (final child in children) {
-        await _processIconsRecursively(child);
+        final children = menuItem['children'] as List<Map<String, Object?>>;
+        for (final child in children) {
+          await _processIconsRecursively(child);
+        }
       }
     }
-  }
 
-  @override
-  bool debugLockDelegate(BuildContext context) {
-    assert(() {
-      if (_lockedContext != null && _lockedContext != context) {
-        return false;
-      }
-      _lockedContext = context;
+    @override
+    bool debugLockDelegate(BuildContext context) {
+      assert(() {
+        if (_lockedContext != null && _lockedContext != context) {
+          return false;
+        }
+        _lockedContext = context;
+        return true;
+      }());
       return true;
-    }());
-    return true;
-  }
+    }
 
-  @override
-  bool debugUnlockDelegate(BuildContext context) {
-    assert(() {
-      if (_lockedContext != null && _lockedContext != context) {
-        return false;
-      }
-      _lockedContext = null;
+    @override
+    bool debugUnlockDelegate(BuildContext context) {
+      assert(() {
+        if (_lockedContext != null && _lockedContext != context) {
+          return false;
+        }
+        _lockedContext = null;
+        return true;
+      }());
       return true;
-    }());
-    return true;
-  }
-
-  Future<void> _methodCallHandler(MethodCall call) async {
-    if (kDebugMode) {
-      debugPrint(
-        "Method call received: ${call.method} with arguments: ${call.arguments}",
-      );
     }
 
-    final int id = call.arguments as int;
-    if (!_idMap.containsKey(id)) {
-      if (kDebugMode) debugPrint('Menu event for unknown id $id');
-      return;
-    }
+    Future<void> _methodCallHandler(MethodCall call) async {
+      final int id = call.arguments as int;
+      if (!_idMap.containsKey(id)) {
+        return;
+      }
 
-    final PlatformMenuItem item = _idMap[id]!;
-    if (kDebugMode) debugPrint("Found menu item: ${item.label}");
+      final PlatformMenuItem item = _idMap[id]!;
 
-    switch (call.method) {
-      case _kMenuSelectedCallbackMethod:
-        if (kDebugMode) debugPrint("Executing onSelected for: ${item.label}");
-        item.onSelected?.call();
-        if (item.onSelectedIntent != null) {
-          final BuildContext? context =
-              _lockedContext ?? FocusManager.instance.primaryFocus?.context;
-          if (context != null) {
-            Actions.maybeInvoke(context, item.onSelectedIntent!);
+      switch (call.method) {
+        case _kMenuSelectedCallbackMethod:
+          item.onSelected?.call();
+          if (item.onSelectedIntent != null) {
+            final BuildContext? context =
+                _lockedContext ?? FocusManager.instance.primaryFocus?.context;
+            if (context != null) {
+              Actions.maybeInvoke(context, item.onSelectedIntent!);
+            }
           }
-        }
-        break;
-      case _kMenuItemOpenedMethod:
-        item.onOpen?.call();
-        break;
-      case _kMenuItemClosedMethod:
-        item.onClose?.call();
-        break;
-      default:
-        if (kDebugMode) {
-          debugPrint('Unknown menu method: ${call.method}');
-        }
-    }
-  }
-
-  Future<Map<String, String>?> getAvailableDefaultMenus() async {
-    try {
-      final result = await channel.invokeMethod<Map<String, String>>(
-        'Menu.getAvailableDefaultMenus',
-      );
-      return result;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error getting available default menus: $e');
+          break;
+        case _kMenuItemOpenedMethod:
+          item.onOpen?.call();
+          break;
+        case _kMenuItemClosedMethod:
+          item.onClose?.call();
+          break;
       }
-      return null;
     }
-  }
 
-  void dispose() {
-    if (kDebugMode) {
-      debugPrint("Delegate disposed");
+    Future<Map<String, String>?> getAvailableDefaultMenus() async {
+      try {
+        final result = await channel.invokeMethod<Map<String, String>>(
+          'Menu.getAvailableDefaultMenus',
+        );
+        return result;
+      } catch (e) {
+        return null;
+      }
     }
   }
-}

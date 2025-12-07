@@ -14,7 +14,7 @@ class IPadFileMenu extends IPadMenu {
             ? additionalItems
             : [
                 if (defaultTargetPlatform != TargetPlatform.iOS)
-                  PlatformMenuItem(label: ''),
+                  PlatformMenuItem(label: 'No items'),
               ],
       );
 }

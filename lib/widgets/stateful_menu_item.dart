@@ -31,12 +31,16 @@ class StatefulPlatformMenuItemWithIcon extends PlatformMenuItemWithIcon
     with StatefulMenuItem {
   StatefulPlatformMenuItemWithIcon({
     required super.label,
-    required super.icon,
+    super.icon,
+    super.iconWidget,
     required MenuItemState state,
     super.onSelected,
     super.onSelectedIntent,
     super.shortcut,
-  }) {
+  }) : assert(
+         (icon != null) != (iconWidget != null),
+         'Exactly one of icon or iconWidget must be provided.',
+       ) {
     this.state =
         state; // Manually set state in constructor, or else late init fails
   }

@@ -6,7 +6,8 @@ import 'package:flutter/rendering.dart';
 /// Helper class with constant methods to send [IconData] as image data to
 /// *Swift*, using the data in a [UIImage].
 class IconConverter {
-  /// Converts an IconData to PNG bytes
+  /// Converts an [IconData] into PNG bytes by drawing the glyph on a canvas.
+  /// Produces a sharp result using an internal scale factor.
   static Future<Uint8List?> iconToBytes(
     IconData iconData, {
     double size = 24.0,
@@ -54,24 +55,31 @@ class IconConverter {
     }
   }
 
-  /// Alternate version using Widgets with full context
+  /// Renders a widget representing an icon and converts it into PNG bytes.
+  /// Useful when visual styling or layout beyond a simple glyph is needed.
   static Future<Uint8List?> iconWidgetToBytes(
-    IconData iconData, {
+    Widget widget, {
     double size = 24.0,
-    Color color = Colors.black,
   }) async {
     try {
-      // Create a full widget with Directionality, will throw errors if not
-      // using this parent widget
-      final widget = Directionality(
-        textDirection: TextDirection.ltr,
-        child: Material(
-          color: Colors.transparent,
-          child: Icon(iconData, size: size, color: color),
+      if (size <= 0) {
+        debugPrint('Invalid size: $size');
+        return null;
+      }
+
+      final wrappedWidget = MediaQuery(
+        data: const MediaQueryData(),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: SizedBox(
+            width: size,
+            height: size,
+            child: Center(child: widget),
+          ),
         ),
       );
 
-      return await _renderWidgetToBytes(widget, Size(size, size));
+      return await _renderWidgetToBytes(wrappedWidget, Size(size, size));
     } catch (e) {
       debugPrint('Error converting icon widget to bytes: $e');
       return null;
@@ -82,37 +90,35 @@ class IconConverter {
     Widget widget,
     Size size,
   ) async {
-    final RenderRepaintBoundary repaintBoundary = RenderRepaintBoundary();
-
-    final PipelineOwner pipelineOwner = PipelineOwner(
-      onNeedVisualUpdate: () {},
-    );
-
-    final BuildOwner buildOwner = BuildOwner(
-      focusManager: FocusManager(),
-      onBuildScheduled: () {},
-    );
-
-    final RenderView renderView = RenderView(
-      view: WidgetsBinding.instance.platformDispatcher.views.first,
-      child: RenderPositionedBox(
-        alignment: Alignment.center,
-        child: repaintBoundary,
-      ),
-      configuration: ViewConfiguration(devicePixelRatio: 3.0),
-    );
-
-    pipelineOwner.rootNode = renderView;
-    renderView.prepareInitialFrame();
-
-    // Create the widget tree
-    final RenderObjectToWidgetElement<RenderBox> rootElement =
-        RenderObjectToWidgetAdapter<RenderBox>(
-          container: repaintBoundary,
-          child: widget,
-        ).attachToRenderTree(buildOwner);
-
     try {
+      final repaintBoundary = RenderRepaintBoundary();
+
+      final pipelineOwner = PipelineOwner();
+      final buildOwner = BuildOwner(focusManager: FocusManager());
+
+      final renderView = RenderView(
+        view: WidgetsBinding.instance.platformDispatcher.views.first,
+        configuration: ViewConfiguration(
+          logicalConstraints: BoxConstraints(
+            minWidth: size.width,
+            minHeight: size.height,
+          ),
+          devicePixelRatio: 3.0,
+        ),
+        child: RenderPositionedBox(
+          alignment: Alignment.center,
+          child: repaintBoundary,
+        ),
+      );
+
+      pipelineOwner.rootNode = renderView;
+      renderView.prepareInitialFrame();
+
+      final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
+        container: repaintBoundary,
+        child: widget,
+      ).attachToRenderTree(buildOwner);
+
       buildOwner.buildScope(rootElement);
       buildOwner.finalizeTree();
 
@@ -120,15 +126,21 @@ class IconConverter {
       pipelineOwner.flushCompositingBits();
       pipelineOwner.flushPaint();
 
-      final ui.Image image = await repaintBoundary.toImage(pixelRatio: 3.0);
-      final ByteData? byteData = await image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
+      // Asegurar que las dimensiones son válidas antes de llamar toImage
+      final int imageWidth = size.width.toInt();
+      final int imageHeight = size.height.toInt();
 
+      if (imageWidth <= 0 || imageHeight <= 0) {
+        return null;
+      }
+
+      final image = await repaintBoundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       return byteData?.buffer.asUint8List();
-    } finally {
-      // Cleaning stuff...
-      buildOwner.finalizeTree();
+    } catch (e, stackTrace) {
+      debugPrint('Error in _renderWidgetToBytes: $e');
+      debugPrint('Stack trace: $stackTrace');
+      return null;
     }
   }
 }

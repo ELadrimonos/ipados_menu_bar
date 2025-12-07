@@ -67,13 +67,38 @@ class _MenuBarScreen2State extends State<MenuBarScreen2> with RouteAware {
     final menuProvider = Provider.of<MenuProvider>(context, listen: false);
     menuProvider.setMenus([
       IPadAppMenu(additionalItems: [PlatformMenuItem(label: 'New Menu Item')]),
-      PlatformMenu(
+      IPadEditMenu(),
+      PlatformMenuWithIcon(
+        iconWidget: FlutterLogo(),
         label: 'Another Custom Menu',
         menus: [
-          PlatformMenuItemGroup(
-            members: [
-              PlatformMenuItem(label: 'Test Menu 3', onSelected: () {}),
-            ],
+          PlatformMenuItemWithIcon(
+            iconWidget: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Colors.purple, Colors.blue],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withAlpha(80),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            label: 'Magic Menu',
+            onSelected: () {},
           ),
         ],
       ),
@@ -90,7 +115,14 @@ class _MenuBarScreen2State extends State<MenuBarScreen2> with RouteAware {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: <Widget>[
+            SizedBox(
+              width: 200,
+              child: TextField(
+                decoration: InputDecoration(labelText: "Try Dictation Here"),
+              ),
+            ),
             const Text('This is the second screen with a menu bar.'),
             ElevatedButton(
               onPressed: () {

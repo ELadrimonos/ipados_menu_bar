@@ -40,9 +40,58 @@ class IPadWindowMenu extends IPadMenu {
   }) : super(
          label: 'Window',
          menus: [
-           if (defaultTargetPlatform != TargetPlatform.iOS &&
-               (additionalItems == null || additionalItems.isEmpty))
-             PlatformMenuItem(label: ''),
+           if (additionalItems != null && additionalItems.isNotEmpty)
+             PlatformMenuItemGroup(members: additionalItems),
+           if (PlatformProvidedMenuItem.hasMenu(
+             PlatformProvidedMenuItemType.minimizeWindow,
+           ))
+             const PlatformMenuItemGroup(
+               members: [
+                 PlatformProvidedMenuItem(
+                   type: PlatformProvidedMenuItemType.minimizeWindow,
+                 ),
+               ],
+             ),
+           if (PlatformProvidedMenuItem.hasMenu(
+             PlatformProvidedMenuItemType.zoomWindow,
+           ))
+             const PlatformMenuItemGroup(
+               members: [
+                 PlatformProvidedMenuItem(
+                   type: PlatformProvidedMenuItemType.zoomWindow,
+                 ),
+               ],
+             ),
+           if (PlatformProvidedMenuItem.hasMenu(
+             PlatformProvidedMenuItemType.toggleFullScreen,
+           ))
+             const PlatformMenuItemGroup(
+               members: [
+                 PlatformProvidedMenuItem(
+                   type: PlatformProvidedMenuItemType.toggleFullScreen,
+                 ),
+               ],
+             ),
+           if (PlatformProvidedMenuItem.hasMenu(
+             PlatformProvidedMenuItemType.arrangeWindowsInFront,
+           ))
+             const PlatformMenuItemGroup(
+               members: [
+                 PlatformProvidedMenuItem(
+                   type: PlatformProvidedMenuItemType.arrangeWindowsInFront,
+                 ),
+               ],
+             ),
+           // Fallback: makes sure there's always 1 element so it doesn't crash
+           if (![
+                 PlatformProvidedMenuItemType.minimizeWindow,
+                 PlatformProvidedMenuItemType.zoomWindow,
+                 PlatformProvidedMenuItemType.toggleFullScreen,
+                 PlatformProvidedMenuItemType.arrangeWindowsInFront,
+               ].any(PlatformProvidedMenuItem.hasMenu) &&
+               (additionalItems == null || additionalItems.isEmpty) &&
+               defaultTargetPlatform != TargetPlatform.iOS)
+             const PlatformMenuItem(label: 'No items'),
          ],
        );
 

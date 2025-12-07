@@ -1,3 +1,23 @@
+## 0.5.2
+
+- Quick hotfix adding a "No items" label to an empty `IPadFileMenu` on non-iPadOS platforms instead of an empty string
+- Updated documentation for `IconConverter.iconWidgetToBytes`
+- [Flutter 3.38's UISceneDelegate migration](https://docs.flutter.dev/release/breaking-changes/uiscenedelegate#migration-guide-for-flutter-apps)
+
+## 0.5.1
+
+* Improved macOS functionality by adding the default native menu actions from `IPadAppMenu` and `IPadWindowMenu` 
+using `PlatformProvidedMenuItem`
+  * This means that actions such as *About*, *Quit*, *Services* and *Window layout* are accesible just by adding these 
+  two widgets to the tree
+
+## 0.5.0
+
+* Added `iconWidget` attribute to `PlatformMenuItemWithIcon`, `PlatformMenuWithIcon` and `StatefulPlatformMenuItemWithIcon`
+  * Allows rendering Flutter widgets as an static image in the native iPadOS menu bar
+  * Only one of `icon` or `iconWidget` can be set at a time
+* Fixed icons not reducing transparency when item is disabled
+
 ## 0.4.3
 
 * Added top level example README file
