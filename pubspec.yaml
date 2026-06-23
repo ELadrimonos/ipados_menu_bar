@@ -1,7 +1,7 @@
 name: ipados_menu_bar
 description: "A highly customizable native-like iPadOS menu bar for Flutter. Elevate your tablet, desktop, and iOS apps with responsive, adaptive navigation menus and shortcuts."
 
-version: 0.6.0
+version: 0.6.1
 
 homepage: https://github.com/ELadrimonos/ipados_menu_bar
 repository: https://github.com/ELadrimonos/ipados_menu_bar

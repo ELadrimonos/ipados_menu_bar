@@ -1,3 +1,9 @@
+## 0.6.1
+
+- Expanded dartdoc coverage across the public API (default menus, icon items, stateful items, `MenuItemState`, delegate, and library/helper docs)
+- Optimized `preview.gif` to stay under pub.dev's 4 MB screenshot limit
+- Removed the API Stability Notice from the README
+
 ## 0.6.0
 
 - Added [Swift Package Manager (SPM)](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-plugin-authors) support for the iOS plugin
