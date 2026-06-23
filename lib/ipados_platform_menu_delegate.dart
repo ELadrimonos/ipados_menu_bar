@@ -42,6 +42,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     channel.setMethodCallHandler(_methodCallHandler);
   }
 
+  /// Method channel used to communicate menu data with the native iPadOS side.
   final MethodChannel channel;
   final Map<int, PlatformMenuItem> _idMap;
   int _serial = 0;
@@ -52,9 +53,12 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
   final Map<String, List<Map<String, Object?>>> _defaultMenuItems =
       <String, List<Map<String, Object?>>>{};
 
+  /// Removes all menus by setting an empty top-level menu list.
   @override
   void clearMenus() => setMenus(<PlatformMenuItem>[]);
 
+  /// Serializes [topLevelMenus] and sends them to the native side, splitting
+  /// them into default ([IPadMenu]) and custom menus.
   @override
   void setMenus(List<PlatformMenuItem> topLevelMenus) async {
     _idMap.clear();
@@ -240,6 +244,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     }
   }
 
+  /// Locks the delegate to a single [context] during debugging to detect
+  /// conflicting menu owners.
   @override
   bool debugLockDelegate(BuildContext context) {
     assert(() {
@@ -252,6 +258,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     return true;
   }
 
+  /// Releases the debug lock previously acquired for [context].
   @override
   bool debugUnlockDelegate(BuildContext context) {
     assert(() {
@@ -292,6 +299,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate {
     }
   }
 
+  /// Queries the native side for the default menus available on the current
+  /// platform, returning `null` if the query fails.
   Future<Map<String, String>?> getAvailableDefaultMenus() async {
     try {
       final result = await channel.invokeMethod<Map<String, String>>(

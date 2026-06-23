@@ -3,9 +3,15 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-/// Helper class with constant methods to send [IconData] as image data to
-/// *Swift*, using the data in a [UIImage].
+/// Helper class with static methods to send [IconData] as image data to
+/// *Swift*, using the data in a `UIImage`.
+///
+/// All members are static; this class is not meant to be instantiated.
 class IconConverter {
+  /// This class only exposes static helpers and is not meant to be
+  /// instantiated.
+  const IconConverter();
+
   /// Converts an [IconData] into PNG bytes by drawing the glyph on a canvas.
   /// Produces a sharp result using an internal scale factor.
   static Future<Uint8List?> iconToBytes(

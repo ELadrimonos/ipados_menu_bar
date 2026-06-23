@@ -6,9 +6,12 @@ part of '../../ipados_menu_bar.dart';
 /// Additional items in this menu should be used to switch screens or other
 /// UI-related actions.
 class IPadViewMenu extends IPadMenu {
+  /// Native menu identifier mapped to the system "view" menu.
   @override
   String get menuId => 'view';
 
+  /// Creates a view menu wiring the show-sidebar action and optional
+  /// [additionalItems] to the given callbacks and intents.
   IPadViewMenu({
     VoidCallback? onShowSidebar,
     Intent? onShowSidebarIntent,

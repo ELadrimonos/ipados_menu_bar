@@ -4,9 +4,12 @@ part of '../../ipados_menu_bar.dart';
 /// the items from this class. Making it easier and faster to link callbacks
 /// from the app.
 class IPadEditMenu extends IPadMenu {
+  /// Native menu identifier mapped to the system "edit" menu.
   @override
   String get menuId => 'edit';
 
+  /// Creates an edit menu wiring undo/redo, clipboard, find and optional
+  /// [additionalItems] to the given callbacks and intents.
   IPadEditMenu({
     // Undo / Redo
     VoidCallback? onUndo,

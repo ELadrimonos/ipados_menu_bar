@@ -20,6 +20,7 @@ part of '../../ipados_menu_bar.dart';
 ///
 /// *Manual management of scenes inside AppDelegate is required*
 class IPadWindowMenu extends IPadMenu {
+  /// Native menu identifier mapped to the system "window" menu.
   @override
   String get menuId => 'window';
 
@@ -98,5 +99,7 @@ class IPadWindowMenu extends IPadMenu {
   /// The scene identifier to use when opening new windows.
   /// This value is automatically passed to the Swift side by the delegate.
   final String? entrypoint;
+
+  /// Optional arguments passed to the platform when creating the new window.
   final Map<String, dynamic>? arguments;
 }

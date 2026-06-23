@@ -3,9 +3,12 @@ part of '../../ipados_menu_bar.dart';
 /// Custom [PlatformMenu] using a menuId to access the native "application" menu
 /// adding the additional items from this class.
 class IPadAppMenu extends IPadMenu {
+  /// Native menu identifier mapped to the system "application" menu.
   @override
   String get menuId => 'application';
 
+  /// Creates the application menu, appending [additionalItems] (if any)
+  /// between the system-provided groups (About, Services, Hide, Quit).
   IPadAppMenu({List<PlatformMenuItem>? additionalItems})
     : super(
         label: 'App Info',

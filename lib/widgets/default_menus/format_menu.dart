@@ -4,9 +4,12 @@ part of '../../ipados_menu_bar.dart';
 /// the items from this class. Making it easier and faster to link callbacks
 /// from the app.
 class IPadFormatMenu extends IPadMenu {
+  /// Native menu identifier mapped to the system "format" menu.
   @override
   String get menuId => 'format';
 
+  /// Creates a format menu wiring font, size, text-alignment and optional
+  /// [additionalItems] to the given callbacks and intents.
   IPadFormatMenu({
     // Font
     VoidCallback? onBold,

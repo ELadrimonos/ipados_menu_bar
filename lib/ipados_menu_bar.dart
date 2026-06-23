@@ -1,3 +1,12 @@
+/// A highly customizable, native-like iPadOS 26+ menu bar for Flutter.
+///
+/// Provides a custom [PlatformMenuDelegate] plus a set of Apple-style menu
+/// widgets ([IPadAppMenu], [IPadFileMenu], [IPadEditMenu], [IPadFormatMenu],
+/// [IPadViewMenu], [IPadWindowMenu]), menu items with icons, and stateful
+/// items. On non-iPadOS targets it falls back to the default delegates so apps
+/// keep working safely.
+library;
+
 export 'ipados_platform_menu_delegate.dart';
 
 import 'package:flutter/cupertino.dart';

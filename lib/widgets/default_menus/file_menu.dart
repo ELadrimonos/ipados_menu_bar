@@ -4,9 +4,12 @@ part of '../../ipados_menu_bar.dart';
 /// thea additional items from this class. In case you need to listen when the
 /// app is closed, checking out [WidgetsBindingObserver] is highly recommended.
 class IPadFileMenu extends IPadMenu {
+  /// Native menu identifier mapped to the system "file" menu.
   @override
   String get menuId => 'file';
 
+  /// Creates a file menu, optionally appending [additionalItems] to the
+  /// native "file" menu.
   IPadFileMenu({List<PlatformMenuItem>? additionalItems})
     : super(
         label: 'File',
