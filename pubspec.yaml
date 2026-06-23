@@ -1,7 +1,9 @@
 name: ipados_menu_bar
-description:
-  "A Flutter package that brings the iPadOS menubar to your apps, offering a native-like, customizable menu experience for iPad."
-version: 0.5.2
+description: "A highly customizable native-like iPadOS menu bar for Flutter. Elevate your tablet, desktop, and iOS apps with responsive, adaptive navigation menus and shortcuts."
+
+version: 0.6.0
+
+homepage: https://github.com/ELadrimonos/ipados_menu_bar
 repository: https://github.com/ELadrimonos/ipados_menu_bar
 issue_tracker: https://github.com/ELadrimonos/ipados_menu_bar/issues
 
@@ -12,16 +14,29 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  plugin_platform_interface: ^2.0.2
+  plugin_platform_interface: ^2.1.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
+screenshots:
+  - description: "iPadOS native-like menu bar with customizable icons and states."
+    path: preview.gif
+
+topics:
+  - ipados
+  - menu
+  - tablet
+  - ios
+  - ui
 
 flutter:
   plugin:
     platforms:
       ios:
         pluginClass: IpadOSMenubarPlugin
+
+    # The following section is specific to Flutter packages.
+    enable-swift-package-manager: true

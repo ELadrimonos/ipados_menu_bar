@@ -1,5 +1,5 @@
-preview.gif
 build/
+**/.build/
 .dart_tool/
 .idea/
 *.iml

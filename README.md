@@ -21,10 +21,9 @@
 - [📦 Installation](#-installation)
 - [📚 Examples](#-examples)
 - [🏁 Getting Started](#-getting-started)
-- [🎛️ Customization Options](#️-customization-options)
+- [🎛️ Customization Options](#-customization-options)
 - [📱 Platform Support](#-platform-support)
 - [🔧 Feature Roadmap](#-feature-roadmap)
-- [⚠️ API Stability Notice](#️-api-stability-notice)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
@@ -34,12 +33,12 @@
 
 This package follows Apple’s official Human Interface Guidelines for the iPadOS menu bar. Before designing your menus, review these resources to ensure consistency with the system experience:
 
-- WWDC session on the iPadOS menu bar: https://developer.apple.com/videos/play/wwdc2025/208/?time=624
-- Apple HIG – Menu Bar: https://developer.apple.com/design/human-interface-guidelines/the-menu-bar
+* WWDC session on the iPadOS menu bar: [https://developer.apple.com/videos/play/wwdc2025/208/?time=624](https://www.google.com/search?q=https://developer.apple.com/videos/play/wwdc2025/208/%3Ftime%3D624)
+* Apple HIG – Menu Bar: [https://developer.apple.com/design/human-interface-guidelines/the-menu-bar](https://www.google.com/search?q=https://developer.apple.com/design/human-interface-guidelines/the-menu-bar)
 
 ## 🚀 Features
 
-Bring the native iPadOS menu bar experience to your Flutter applications with this custom `PlatformMenuDelegate`. This package provides seamless integration with iPadOS 26+ menu bar functionality, allowing users to access app features through the system menu bar.
+Bring the native iPadOS menu bar experience to your Flutter applications with this custom `PlatformMenuDelegate`. Elevate your tablet and desktop apps with responsive, adaptive navigation menus, custom status icons, and keyboard shortcuts.
 
 ## 📦 Installation
 
@@ -47,14 +46,19 @@ Add `ipados_menu_bar` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ipados_menu_bar: ^0.5.2
+  ipados_menu_bar: ^0.6.0
+
 ```
 
 Then run:
 
 ```bash
 flutter pub get
+
 ```
+
+> [!NOTE]
+> The iOS plugin supports both **Swift Package Manager** and **CocoaPods**. When Swift Package Manager is enabled in your project, the Flutter tool uses it automatically; otherwise it falls back to CocoaPods. No extra setup is required either way.
 
 ## 📚 Examples
 
@@ -84,7 +88,9 @@ void main() {
 
   runApp(MyApp());
 }
+
 ```
+
 And everything just works now! Please check out the included examples to learn how `PlatformMenu` works and how to use it on your application.
 
 ## 🎛️ Customization Options
@@ -93,16 +99,14 @@ And everything just works now! Please check out the included examples to learn h
 
 The package allows you to hide default system menu items that come with iPadOS:
 
-- **File**: Hide file-related actions
-- **Edit**: Hide editing actions (cut, copy, paste, etc.)
-- **Format**: Hide text formatting options
-- **View**: Hide view-related controls
+* **File**: Hide file-related actions
+* **Edit**: Hide editing actions (cut, copy, paste, etc.)
+* **Format**: Hide text formatting options
+* **View**: Hide view-related controls
 
-These menus will be automatically hidden when there's a `PlatformMenuBar`on the current context and 
-haven't been placed in the widget tree:
+These menus will be automatically hidden when there's a `PlatformMenuBar` on the current context and haven't been placed in the widget tree:
 
 ```dart
-
 PlatformMenuBar(
     menus: [
         // File and Format will be hidden
@@ -118,7 +122,7 @@ PlatformMenuBar(
 
 ### Disable Menu Items
 
-On custom menu items, you can disable menu items by setting the `onSelected` or `onSelectedIntent` a null value:
+On custom menu items, you can disable menu items by setting the `onSelected` or `onSelectedIntent` to a null value:
 
 ```dart
 // Controlling when an item should be clickable using a boolean
@@ -128,18 +132,17 @@ PlatformMenuItem(
       ? () => debugPrint("Item 0 selected")
       : null,
 ),
+
 ```
 
-This is handful when changing contexts, like opening a modal, and don't want the 
-user to do unexpected stuff.
+This is extremely useful when changing contexts, like opening a modal, and you want to prevent unexpected user actions.
 
 ### Add Icons to your items
 
-You can use either `IconData` with `icon` attribute or a `Widget` using `iconWidget` attribute on
-`PlatformMenuItemWithIcon`, `PlatformMenuWithIcon` and `StatefulPlatformMenuItemWithIcon`.
+You can use either `IconData` with the `icon` attribute or a `Widget` using the `iconWidget` attribute on `PlatformMenuItemWithIcon`, `PlatformMenuWithIcon` and `StatefulPlatformMenuItemWithIcon`.
 
 > [!NOTE]
-> Icons will only be rendered on iPadOS, they won't work on macOS or other platforms
+> Icons are natively rendered on iPadOS. On macOS and other desktop targets, they gracefully fallback to standard text items following the system guidelines.
 
 ```dart
 // Disabled items will have their icon's alpha lowered
@@ -155,6 +158,7 @@ PlatformMenuItemWithIcon(
     print("Flutter Rocks!!");  
   }
 ),
+
 ```
 
 ### Set a state to your item
@@ -162,8 +166,7 @@ PlatformMenuItemWithIcon(
 Menu items can have three different states: *off*, *on* and *mixed*.
 
 > [!NOTE]
-> State will only be rendered on iPadOS, they won't work on macOS or other platforms
-
+> Interactive item states are fully supported on iPadOS targets.
 
 ```dart
 StatefulPlatformMenuItem(
@@ -181,67 +184,58 @@ StatefulPlatformMenuItemWithIcon(
   state: MenuItemState.mixed,
   icon: Icons.question_mark
 ),
+
 ```
 
 ### Menu Structure
 
 Create organized menu hierarchies with:
 
-- **`PlatformMenu`** – Defines a top-level menu category.
-- **`PlatformMenuItemGroup`** – Groups related menu items and automatically separates them from others.
-- **`PlatformMenuItem`** – Represents an individual menu action, optionally with a keyboard shortcut.
-- **`PlatformMenuWithIcon`** – A top-level menu that includes a leading icon.
-- **`PlatformMenuItemWithIcon`** – A single menu action that includes a leading icon.
+* **`PlatformMenu`** – Defines a top-level menu category.
+* **`PlatformMenuItemGroup`** – Groups related menu items and automatically separates them from others.
+* **`PlatformMenuItem`** – Represents an individual menu action, optionally with a keyboard shortcut.
+* **`PlatformMenuWithIcon`** – A top-level menu that includes a leading icon.
+* **`PlatformMenuItemWithIcon`** – A single menu action that includes a leading icon.
 
 #### Default Apple-style Menus
 
 These are prebuilt menu categories designed to follow Apple’s native iPadOS behavior, while allowing custom items and callbacks:
 
-- **`IPadAppMenu`** – Allows you to access the Application menu and add your own items.
-- **`IPadFileMenu`** – Manages file-related operations such as opening, saving, or creating new documents.
-- **`IPadEditMenu`** – Provides standard edit actions (undo, redo, cut, copy, paste) integrated with iPadOS, plus your own callbacks.
-- **`IPadFormatMenu`** – Handles formatting-related actions for text or data with system-consistent structure.
-- **`IPadViewMenu`** – Allows switching between views, toggling panels, or controlling UI visibility (e.g., showing the sidebar).
-- **`IPadWindowMenu`** – Enables window management and lets you define entry points for new windows, each with its own Flutter view and arguments.
-
+* **`IPadAppMenu`** – Allows you to access the Application menu and add your own items.
+* **`IPadFileMenu`** – Manages file-related operations such as opening, saving, or creating new documents.
+* **`IPadEditMenu`** – Provides standard edit actions (undo, redo, cut, copy, paste) integrated with iPadOS, plus your own callbacks.
+* **`IPadFormatMenu`** – Handles formatting-related actions for text or data with system-consistent structure.
+* **`IPadViewMenu`** – Allows switching between views, toggling panels, or controlling UI visibility (e.g., showing the sidebar).
+* **`IPadWindowMenu`** – Enables window management and lets you define entry points for new windows, each with its own Flutter view and arguments.
 
 ## 📱 Platform Support
 
-This package is specifically designed for iPadOS 26+ and provides enhanced functionality when running on compatible devices.  
+This package offers dual-optimized behavior for Apple ecosystems and responsive applications:
 
-On other platforms, it executes using the default `DefaultPlatformMenuDelegate`, ensuring full compatibility with macOS and preventing any unexpected behavior on other targets.
-
-While this plugin automatically arranges menu items to follow Apple’s Human Interface Guidelines on iPadOS, macOS retains the menu order exactly as defined in the widget tree.  
-For that reason, it’s recommended to keep a consistent and well-structured menu hierarchy when targeting macOS.
+| Platform | Support Level | Behavior |
+| --- | --- | --- |
+| **iPadOS 26+** | 🚀 Native Enhanced | Full support for icons, stateful items, and Apple HIG menu automatic layout arrangement. |
+| **macOS** | 💻 Fully Compatible | Executes flawlessly using `DefaultPlatformMenuDelegate` maintaining your defined widget tree hierarchy exactly. |
+| **Other Platforms** | 🛡️ Safe Fallback | Automatically uses default delegates to ensure application stability and avoid crashes on non-Apple targets. |
 
 ## 🔧 Feature Roadmap
 
-| Feature                                                                           | Status |
-|-----------------------------------------------------------------------------------|--------|
-| Basic Menu Bar Integration                                                        | ✅     |
-| Custom Menu Items                                                                 | ✅     |
-| Apple Human Interface Guideline menu arrangement                                  | ✅     |
-| Hide Default Menus (*File, Edit, Format, View*)                                   | ✅     |
-| Submenu Nesting                                                                   | ✅     |
-| Dynamic Menu Updates                                                              | ✅     |
-| Menu Separators                                                                   | ✅     |
-| App Info Custom Children Items                                                    | ✅     |
-| Menu Icons Support                                                                | ✅     |
-| Widgets as Menu Icons Support                                                     | ✅     |
-| Multiple Windows support                                                          | 🚧     |
-| Stateful Items (checked, unchecked, mixed)                                        | ✅     |
-| Keyboard Shortcuts                                                                | ✅     |
-| Native menu items on other platforms (macOS)<br/>using `PlatformProvidedMenuItem` | ✅     |
-
-## ⚠️ API Stability Notice
-
-**Important:** This package is currently in early development (version 0.x.x). The API is subject to breaking changes until it reaches a stable 1.0.0 release. Please be aware that:
-
-- Method signatures may change
-- Configuration options may be modified or removed
-- New features may introduce breaking changes
-
-We recommend pinning to a specific version in your `pubspec.yaml` and reviewing the changelog before updating. Once the package reaches version 1.0.0, we will follow semantic versioning for all future releases.
+| Feature | Status |
+| --- | --- |
+| Basic Menu Bar Integration | ✅ |
+| Custom Menu Items | ✅ |
+| Apple Human Interface Guideline menu arrangement | ✅ |
+| Hide Default Menus (*File, Edit, Format, View*) | ✅ |
+| Submenu Nesting | ✅ |
+| Dynamic Menu Updates | ✅ |
+| Menu Separators | ✅ |
+| App Info Custom Children Items | ✅ |
+| Menu Icons Support | ✅ |
+| Widgets as Menu Icons Support | ✅ |
+| Multiple Windows support | 🚧 |
+| Stateful Items (checked, unchecked, mixed) | ✅ |
+| Keyboard Shortcuts | ✅ |
+| Native menu items on other platforms (macOS)using `PlatformProvidedMenuItem` | ✅ |
 
 ## 🤝 Contributing
 
@@ -249,4 +243,4 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ## 📄 License
 
-This package is licensed under [MIT License](LICENSE).
+This package is licensed under the [MIT License](https://www.google.com/search?q=LICENSE).

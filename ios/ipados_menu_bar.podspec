@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'ipados_menu_bar'
-  s.version          = '0.5.2'
+  s.version          = '0.6.0'
   s.summary          = 'A Flutter plugin for integrating the iPadOS menubar into Flutter apps.'
   s.description      = <<-DESC
 A Flutter plugin that enables developers to add a native-like iPadOS menubar to their Flutter applications.
@@ -29,5 +29,5 @@ It provides customizable menu items and actions, following Apple's Human Interfa
   # required reason APIs, update the PrivacyInfo.xcprivacy file to describe your
   # plugin's privacy impact, and then uncomment this line. For more information,
   # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
-  # s.resource_bundles = {'ipados_menu_bar_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
+  s.resource_bundles = {'ipados_menu_bar_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
 end

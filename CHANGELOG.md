@@ -1,3 +1,9 @@
+## 0.6.0
+
+- Added [Swift Package Manager (SPM)](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-plugin-authors) support for the iOS plugin
+  - CocoaPods remains fully supported; the Flutter tool picks SPM when enabled and falls back to CocoaPods otherwise, so no action is required for existing users
+- Excluded the SPM `.build/` directory from the published package
+
 ## 0.5.2
 
 - Quick hotfix adding a "No items" label to an empty `IPadFileMenu` on non-iPadOS platforms instead of an empty string
