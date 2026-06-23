@@ -47,14 +47,12 @@ Add `ipados_menu_bar` to your `pubspec.yaml`:
 ```yaml
 dependencies:
   ipados_menu_bar: ^0.6.0
-
 ```
 
 Then run:
 
 ```bash
 flutter pub get
-
 ```
 
 > [!NOTE]
@@ -88,7 +86,6 @@ void main() {
 
   runApp(MyApp());
 }
-
 ```
 
 And everything just works now! Please check out the included examples to learn how `PlatformMenu` works and how to use it on your application.
@@ -117,7 +114,6 @@ PlatformMenuBar(
         IPadViewMenu(),
     ],
 )
-
 ```
 
 ### Disable Menu Items
@@ -132,7 +128,6 @@ PlatformMenuItem(
       ? () => debugPrint("Item 0 selected")
       : null,
 ),
-
 ```
 
 This is extremely useful when changing contexts, like opening a modal, and you want to prevent unexpected user actions.
@@ -158,7 +153,6 @@ PlatformMenuItemWithIcon(
     print("Flutter Rocks!!");  
   }
 ),
-
 ```
 
 ### Set a state to your item
@@ -184,7 +178,6 @@ StatefulPlatformMenuItemWithIcon(
   state: MenuItemState.mixed,
   icon: Icons.question_mark
 ),
-
 ```
 
 ### Menu Structure
