@@ -1,3 +1,9 @@
+analyzer:
+  exclude:
+    - build/**
+    - ios/**
+    # Old-API samples for `dart fix --compare-to-golden`
+    - test_fixes/**
 include: package:flutter_lints/flutter.yaml
 
 # Additional information about this file can be found at

@@ -1,3 +1,13 @@
+## 0.7.0
+
+- Replaced the hand-written `MethodChannel` payload with a typed [Pigeon](https://pub.dev/packages/pigeon) API (`pigeons/menu_api.dart`) shared by Dart and Swift
+- **Breaking:** `IPadOSPlatformMenuDelegate.create` now takes `binaryMessenger` instead of `channel`
+  - Run `dart fix --apply` to remove the old `channel` argument automatically (added `lib/fix_data.yaml`)
+- `IPadOSPlatformMenuDelegate.setMenus` now returns a `Future<void>`
+- Fixed `getAvailableDefaultMenus` always returning `null`
+- Added unit tests for the menu delegate
+- Fixed unresolved dartdoc references
+
 ## 0.6.1
 
 - Expanded dartdoc coverage across the public API (default menus, icon items, stateful items, `MenuItemState`, delegate, and library/helper docs)

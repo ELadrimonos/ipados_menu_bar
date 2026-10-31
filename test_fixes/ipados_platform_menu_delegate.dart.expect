@@ -1,0 +1,6 @@
+import 'package:ipados_menu_bar/ipados_menu_bar.dart';
+
+void main() {
+  IPadOSPlatformMenuDelegate.create();
+  IPadOSPlatformMenuDelegate.create();
+}

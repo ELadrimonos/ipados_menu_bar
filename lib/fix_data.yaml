@@ -1,0 +1,16 @@
+# Data-driven fixes for `dart fix`.
+# See https://dart.dev/tools/pub/data-driven-fixes
+version: 1
+transforms:
+  # `channel` was replaced by Pigeon in 0.7.0. It is a MethodChannel and
+  # `binaryMessenger` is a BinaryMessenger, so the argument cannot be renamed
+  # and has to be dropped.
+  - title: "Remove 'channel' parameter"
+    date: 2026-10-31
+    element:
+      uris: ['ipados_menu_bar.dart', 'ipados_platform_menu_delegate.dart']
+      method: 'create'
+      inClass: 'IPadOSPlatformMenuDelegate'
+    changes:
+      - kind: 'removeParameter'
+        name: 'channel'

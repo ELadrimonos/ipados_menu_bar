@@ -2,7 +2,7 @@ part of '../ipados_menu_bar.dart';
 
 /// Mixin that adds state functionality to menu items. In iPadOS' menu bar,
 /// the state will be represented as a native icon (✓, *none*,-) using UIKit's
-/// [UIMenuElement.State].
+/// `UIMenuElement.State`.
 mixin StatefulMenuItem {
   /// Current state of the menu item, rendered as a native icon on iPadOS.
   late MenuItemState state;
@@ -10,7 +10,7 @@ mixin StatefulMenuItem {
 
 /// Custom [PlatformMenuItem] class with a [MenuItemState.on], [MenuItemState.off]
 /// or [MenuItemState.mixed] state. In iPadOS' menu bar, the state will be
-/// represented as a native icon (✓, *none*,-) using UIKit's [UIMenuElement.State].
+/// represented as a native icon (✓, *none*,-) using UIKit's `UIMenuElement.State`.
 class StatefulPlatformMenuItem extends PlatformMenuItem with StatefulMenuItem {
   /// Creates a menu item with the given [state] and standard menu item options.
   StatefulPlatformMenuItem({
@@ -28,7 +28,7 @@ class StatefulPlatformMenuItem extends PlatformMenuItem with StatefulMenuItem {
 /// Custom [PlatformMenuItemWithIcon] class with a [MenuItemState.on],
 /// [MenuItemState.off] or [MenuItemState.mixed] state. In iPadOS' menu bar,
 /// the state will be represented as a native icon (✓, *none*,-) using UIKit's
-/// [UIMenuElement.State].
+/// `UIMenuElement.State`.
 class StatefulPlatformMenuItemWithIcon extends PlatformMenuItemWithIcon
     with StatefulMenuItem {
   /// Creates an icon menu item with the given [state]. Exactly one of [icon]

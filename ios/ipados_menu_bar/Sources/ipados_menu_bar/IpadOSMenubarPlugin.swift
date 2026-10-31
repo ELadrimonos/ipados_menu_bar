@@ -1,22 +1,19 @@
 import Flutter
 import UIKit
 
-public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
-    private var channel: FlutterMethodChannel!
-    private var customMenus: [[String: Any]] = []
+public class IpadOSMenubarPlugin: NSObject, FlutterPlugin, IpadOSMenuHostApi {
+    private var flutterApi: IpadOSMenuFlutterApi?
+    private var customMenus: [NativeMenuItem] = []
     private var presentDefaultMenus: [String] = []
-    private var defaultMenuItems: [String: [[String: Any]]] = [:]
+    private var defaultMenuItems: [String: [NativeMenuItem]] = [:]
 
     public static var shared: IpadOSMenubarPlugin?
     private var menuBuilderDelegate: MenuBuilderDelegate?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = IpadOSMenubarPlugin()
-        instance.channel = FlutterMethodChannel(
-            name: "flutter/ipados_menu",
-            binaryMessenger: registrar.messenger()
-        )
-        registrar.addMethodCallDelegate(instance, channel: instance.channel)
+        instance.flutterApi = IpadOSMenuFlutterApi(binaryMessenger: registrar.messenger())
+        IpadOSMenuHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance)
 
         IpadOSMenubarPlugin.shared = instance
         instance.setupMenuDelegate()
@@ -30,51 +27,29 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        print("Method called: \(call.method)")
+    func setMenus(configuration: NativeMenuConfiguration) throws {
+        customMenus = configuration.customMenus
+        presentDefaultMenus = configuration.defaultMenus
+        defaultMenuItems = configuration.defaultMenuItems
 
-        switch call.method {
-        case "Menu.setMenus":
-            if let args = call.arguments as? [String: Any] {
-                print("Received menu data: \(args)")
+        print("Custom menus: \(customMenus.count)")
+        print("Present default menus: \(presentDefaultMenus)")
+        print("Default menu items keys: \(defaultMenuItems.keys)")
 
-                if let customMenusData = args["customMenus"] as? [[String: Any]] {
-                    self.customMenus = customMenusData
-                    print("Custom menus: \(customMenusData.count)")
-                }
-
-                if let defaultMenusData = args["defaultMenus"] as? [String] {
-                    self.presentDefaultMenus = defaultMenusData
-                    print("Present default menus: \(defaultMenusData)")
-                }
-
-                if let defaultItemsData = args["defaultMenuItems"] as? [String: [[String: Any]]] {
-                    self.defaultMenuItems = defaultItemsData
-                    print("Default menu items keys: \(defaultItemsData.keys)")
-                }
-
-                DispatchQueue.main.async {
-                    self.rebuildMenus()
-                }
-                result(nil)
-            } else {
-                result(FlutterError(code: "bad_args", message: "Invalid arguments", details: nil))
-            }
-
-        case "Menu.getAvailableDefaultMenus":
-            let availableMenus = [
-                "file": "File Menu",
-                "edit": "Edit Menu",
-                "format": "Format Menu",
-                "view": "View Menu",
-                "window": "Window Menu",
-                "help": "Help Menu",
-            ]
-            result(availableMenus)
-
-        default:
-            result(FlutterMethodNotImplemented)
+        DispatchQueue.main.async {
+            self.rebuildMenus()
         }
+    }
+
+    func getAvailableDefaultMenus() throws -> [String: String] {
+        return [
+            "file": "File Menu",
+            "edit": "Edit Menu",
+            "format": "Format Menu",
+            "view": "View Menu",
+            "window": "Window Menu",
+            "help": "Help Menu",
+        ]
     }
 
     private func rebuildMenus() {
@@ -91,21 +66,28 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin {
         )
     }
 
-    public func getCustomMenus() -> [[String: Any]] {
+    func getCustomMenus() -> [NativeMenuItem] {
         return customMenus.reversed()
     }
 
-    public func getPresentDefaultMenus() -> [String] {
+    func getPresentDefaultMenus() -> [String] {
         return presentDefaultMenus
     }
 
-    public func getDefaultMenuItems() -> [String: [[String: Any]]] {
+    func getDefaultMenuItems() -> [String: [NativeMenuItem]] {
         return defaultMenuItems
     }
 
-    public func performAction(id: Int) {
+    func performAction(id: Int) {
         print("Performing action for id: \(id)")
-        channel.invokeMethod("Menu.selectedCallback", arguments: id)
+        guard let flutterApi = flutterApi else { return }
+        Task { @MainActor in
+            do {
+                try await flutterApi.menuSelected(id: Int64(id))
+            } catch {
+                print("Failed to report menu selection \(id): \(error)")
+            }
+        }
     }
 }
 
@@ -177,7 +159,7 @@ extension IpadOSMenubarPlugin {
     }
 
     private func configureDefaultMenu(
-        with builder: UIMenuBuilder, menuId: String, items: [[String: Any]]
+        with builder: UIMenuBuilder, menuId: String, items: [NativeMenuItem]
     ) {
         print("Configuring \(menuId) menu with \(items.count) items")
 
@@ -236,15 +218,13 @@ extension IpadOSMenubarPlugin {
         let customMenus = getCustomMenus()
 
         for menuData in customMenus {
-            guard let title = menuData["label"] as? String,
-                let children = menuData["children"] as? [[String: Any]]
-            else {
+            guard let title = menuData.label else {
                 continue
             }
 
             print("Building custom menu: \(title)")
 
-            let menuElements = buildMenuElements(from: children)
+            let menuElements = buildMenuElements(from: menuData.children)
             if !menuElements.isEmpty {
                 let customMenu = UIMenu(title: title, children: menuElements)
 
@@ -317,36 +297,34 @@ extension IpadOSMenubarPlugin {
         }
     }
 
-    private func buildMenuElements(from children: [[String: Any]]) -> [UIMenuElement] {
+    private func buildMenuElements(from children: [NativeMenuItem]) -> [UIMenuElement] {
         var elements: [UIMenuElement] = []
         var usedKeyCommands: Set<String> = Set()
 
         for childData in children {
-            if let type = childData["type"] as? String, type == "group" {
-                if let groupChildren = childData["children"] as? [[String: Any]] {
-                    let groupElements = buildMenuElements(from: groupChildren)
-                    let dividerGroup = UIMenu(
-                        title: "", options: [.displayInline], children: groupElements)
-                    elements.append(dividerGroup)
-                }
+            if childData.isGroup {
+                let groupElements = buildMenuElements(from: childData.children)
+                let dividerGroup = UIMenu(
+                    title: "", options: [.displayInline], children: groupElements)
+                elements.append(dividerGroup)
                 continue
             }
 
-            guard let title = childData["label"] as? String,
-                let id = childData["id"] as? Int
+            guard let title = childData.label,
+                let nativeId = childData.id
             else {
                 continue
             }
+            let id = Int(nativeId)
 
-            let enabled = childData["enabled"] as? Bool ?? true
-            let iconImage = createImageFromBytes(childData["iconBytes"])
+            let enabled = childData.enabled
+            let iconImage = createImageFromBytes(childData.iconBytes)
             let displayedImage = applyDisabledAppearance(to: iconImage, enabled: enabled)
-            let shortcut = childData["shortcut"] as? [String: Any]
-            let menuItemState = parseMenuItemState(childData["state"])
+            let shortcut = childData.shortcut
+            let menuItemState = parseMenuItemState(childData.state)
 
-            if let grandchildren = childData["children"] as? [[String: Any]], !grandchildren.isEmpty
-            {
-                let submenuElements = buildMenuElements(from: grandchildren)
+            if !childData.children.isEmpty {
+                let submenuElements = buildMenuElements(from: childData.children)
 
                 if !submenuElements.isEmpty {
                     let submenu = UIMenu(
@@ -358,11 +336,9 @@ extension IpadOSMenubarPlugin {
                     elements.append(submenu)
                 }
             } else {
-                if let shortcut = shortcut,
-                    let input = shortcut["trigger"] as? String,
-                    !input.isEmpty
-                {
-                    let modifiers = parseModifiers(shortcut["modifiers"])
+                if let shortcut = shortcut, !shortcut.trigger.isEmpty {
+                    let input = shortcut.trigger
+                    let modifiers = parseModifiers(shortcut.modifiers)
                     let keyCommandIdentifier = "\(input)-\(modifiers.rawValue)"
                     if !usedKeyCommands.contains(keyCommandIdentifier) {
                         usedKeyCommands.insert(keyCommandIdentifier)
@@ -397,8 +373,8 @@ extension IpadOSMenubarPlugin {
         return elements
     }
 
-    private func createImageFromBytes(_ iconBytesData: Any?) -> UIImage? {
-        guard let iconBytes = iconBytesData as? FlutterStandardTypedData else {
+    private func createImageFromBytes(_ iconBytes: FlutterStandardTypedData?) -> UIImage? {
+        guard let iconBytes = iconBytes else {
             return nil
         }
 
@@ -451,46 +427,33 @@ extension IpadOSMenubarPlugin {
         }
     }
 
-    private func parseModifiers(_ modifiersData: Any?) -> UIKeyModifierFlags {
-        guard let modifiersList = modifiersData as? [String] else {
-            return []
-        }
-
+    private func parseModifiers(_ modifiersList: [NativeMenuModifier]) -> UIKeyModifierFlags {
         var flags: UIKeyModifierFlags = []
 
         for modifier in modifiersList {
-            switch modifier.lowercased() {
-            case "shift":
+            switch modifier {
+            case .shift:
                 flags.insert(.shift)
-            case "control":
+            case .control:
                 flags.insert(.control)
-            case "alt", "option":
+            case .alt:
                 flags.insert(.alternate)
-            case "command", "meta":
+            case .meta:
                 flags.insert(.command)
-            default:
-                break
             }
         }
 
         return flags
     }
 
-    private func parseMenuItemState(_ stateData: Any?) -> UIMenuElement.State {
-        guard let stateString = stateData as? String else {
-            return .off
-        }
-
-        switch stateString.lowercased() {
-        case "on":
+    private func parseMenuItemState(_ state: NativeMenuState?) -> UIMenuElement.State {
+        switch state {
+        case .on:
             return .on
-        case "off":
-            return .off
-        case "mixed":
+        case .mixed:
             return .mixed
-        default:
+        case .off, .none:
             return .off
         }
     }
 }
-
