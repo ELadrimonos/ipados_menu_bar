@@ -7,6 +7,10 @@
 - Fixed `getAvailableDefaultMenus` always returning `null`
 - Added unit tests for the menu delegate
 - Fixed unresolved dartdoc references
+- The package no longer imports `package:flutter/material.dart` or `package:flutter/cupertino.dart` (deprecated in Flutter 3.50 in favor of `material_ui` / `cupertino_ui`); it only depends on `flutter/widgets.dart`, so it stays agnostic of the UI design system
+  - Default menu icons now ship as internal glyphs of the `cupertino_icons` font, which is a new dependency of the package (font asset only)
+- Updated Pigeon to 30.0.2 and regenerated the Dart and Swift bindings
+- Migrated the example apps to `material_ui` and `cupertino_ui`
 
 ## 0.6.1
 
