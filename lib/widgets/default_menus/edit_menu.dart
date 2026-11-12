@@ -51,14 +51,14 @@ class IPadEditMenu extends IPadMenu {
            PlatformMenuItemGroup(
              members: [
                PlatformMenuItemWithIcon(
-                 icon: CupertinoIcons.arrow_uturn_left,
+                 icon: _MenuIcons.arrowUturnLeft,
                  label: 'Undo',
                  onSelected: onUndo,
                  onSelectedIntent: onUndoIntent,
                  shortcut: SingleActivator(LogicalKeyboardKey.keyZ, meta: true),
                ),
                PlatformMenuItemWithIcon(
-                 icon: CupertinoIcons.arrow_uturn_right,
+                 icon: _MenuIcons.arrowUturnRight,
                  label: 'Redo',
                  onSelected: onRedo,
                  onSelectedIntent: onRedoIntent,
@@ -71,28 +71,28 @@ class IPadEditMenu extends IPadMenu {
              ],
            ),
            PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.scissors,
+             icon: _MenuIcons.scissors,
              label: 'Cut',
              onSelected: onCut,
              onSelectedIntent: onCutIntent,
              shortcut: SingleActivator(LogicalKeyboardKey.keyX, meta: true),
            ),
            PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.doc_on_doc,
+             icon: _MenuIcons.docOnDoc,
              label: 'Copy',
              onSelected: onCopy,
              onSelectedIntent: onCopyIntent,
              shortcut: SingleActivator(LogicalKeyboardKey.keyC, meta: true),
            ),
            PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.doc_on_clipboard,
+             icon: _MenuIcons.docOnClipboard,
              label: 'Paste',
              onSelected: onPaste,
              onSelectedIntent: onPasteIntent,
              shortcut: SingleActivator(LogicalKeyboardKey.keyV, meta: true),
            ),
            PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.doc_on_clipboard_fill,
+             icon: _MenuIcons.docOnClipboardFill,
              label: 'Paste with the same style',
              onSelected: onPasteStyle,
              onSelectedIntent: onPasteStyleIntent,
@@ -104,13 +104,13 @@ class IPadEditMenu extends IPadMenu {
              ),
            ),
            PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.trash,
+             icon: _MenuIcons.trash,
              label: 'Delete',
              onSelected: onDelete,
              onSelectedIntent: onDeleteIntent,
            ),
            PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.textbox,
+             icon: _MenuIcons.textbox,
              label: 'Select All',
              onSelected: onSelectAll,
              onSelectedIntent: onSelectAllIntent,
@@ -124,7 +124,7 @@ class IPadEditMenu extends IPadMenu {
            PlatformMenuItemGroup(
              members: [
                PlatformMenuWithIcon(
-                 icon: CupertinoIcons.doc_text_search,
+                 icon: _MenuIcons.docTextSearch,
                  label: 'Find',
                  menus: [
                    PlatformMenuItemGroup(

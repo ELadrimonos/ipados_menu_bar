@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
 
 /// Helper class with static methods to send [IconData] as image data to
@@ -17,7 +17,7 @@ class IconConverter {
   static Future<Uint8List?> iconToBytes(
     IconData iconData, {
     double size = 24.0,
-    Color color = Colors.black,
+    Color color = const Color(0xFF000000),
   }) async {
     try {
       // The higher the scale, the better the quality; using a very high scale may

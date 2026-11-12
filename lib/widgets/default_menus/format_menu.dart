@@ -40,26 +40,26 @@ class IPadFormatMenu extends IPadMenu {
          label: 'Format',
          menus: [
            PlatformMenuWithIcon(
-             icon: CupertinoIcons.textformat,
+             icon: _MenuIcons.textformat,
              label: 'Font',
              menus: [
                PlatformMenuItemGroup(
                  members: [
                    PlatformMenuItemWithIcon(
                      label: 'Bold',
-                     icon: CupertinoIcons.bold,
+                     icon: _MenuIcons.bold,
                      onSelected: onBold,
                      onSelectedIntent: onBoldIntent,
                    ),
                    PlatformMenuItemWithIcon(
                      label: 'Italic',
-                     icon: CupertinoIcons.italic,
+                     icon: _MenuIcons.italic,
                      onSelected: onItalic,
                      onSelectedIntent: onItalicIntent,
                    ),
                    PlatformMenuItemWithIcon(
                      label: 'Underline',
-                     icon: CupertinoIcons.underline,
+                     icon: _MenuIcons.underline,
                      onSelected: onUnderline,
                      onSelectedIntent: onUnderlineIntent,
                    ),
@@ -69,13 +69,13 @@ class IPadFormatMenu extends IPadMenu {
                  members: [
                    PlatformMenuItemWithIcon(
                      label: 'Bigger',
-                     icon: CupertinoIcons.textformat_superscript,
+                     icon: _MenuIcons.textformatSuperscript,
                      onSelected: onBigger,
                      onSelectedIntent: onBiggerIntent,
                    ),
                    PlatformMenuItemWithIcon(
                      label: 'Smaller',
-                     icon: CupertinoIcons.textformat_subscript,
+                     icon: _MenuIcons.textformatSubscript,
                      onSelected: onSmaller,
                      onSelectedIntent: onSmallerIntent,
                    ),
@@ -84,30 +84,30 @@ class IPadFormatMenu extends IPadMenu {
              ],
            ),
            PlatformMenuWithIcon(
-             icon: CupertinoIcons.text_alignleft,
+             icon: _MenuIcons.textAlignleft,
              label: 'Text',
              menus: [
                PlatformMenuItemWithIcon(
                  label: 'Align Left',
-                 icon: CupertinoIcons.text_alignleft,
+                 icon: _MenuIcons.textAlignleft,
                  onSelected: onAlignLeft,
                  onSelectedIntent: onAlignLeftIntent,
                ),
                PlatformMenuItemWithIcon(
                  label: 'Center',
-                 icon: CupertinoIcons.text_aligncenter,
+                 icon: _MenuIcons.textAligncenter,
                  onSelected: onCenter,
                  onSelectedIntent: onCenterIntent,
                ),
                PlatformMenuItemWithIcon(
                  label: 'Justify',
-                 icon: CupertinoIcons.text_justify,
+                 icon: _MenuIcons.textJustify,
                  onSelected: onJustify,
                  onSelectedIntent: onJustifyIntent,
                ),
                PlatformMenuItemWithIcon(
                  label: 'Align Right',
-                 icon: CupertinoIcons.text_alignright,
+                 icon: _MenuIcons.textAlignright,
                  onSelected: onAlignRight,
                  onSelectedIntent: onAlignRightIntent,
                ),

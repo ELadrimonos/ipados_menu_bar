@@ -1,5 +1,5 @@
 import 'package:cupertino_sidebar/cupertino_sidebar.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 

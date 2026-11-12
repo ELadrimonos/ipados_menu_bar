@@ -14,6 +14,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cupertino_icons: ^1.0.8
   meta: ^1.19.0
   plugin_platform_interface: ^2.1.8
 
@@ -21,7 +22,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  pigeon: ^29.1.0
+  pigeon: ^30.0.2
 
 screenshots:
   - description: "iPadOS native-like menu bar with customizable icons and states."

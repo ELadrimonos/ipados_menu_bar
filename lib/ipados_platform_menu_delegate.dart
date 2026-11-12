@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, visibleForTesting;
+import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:ipados_menu_bar/helpers/icon_converter.dart';
 import 'package:ipados_menu_bar/ipados_menu_bar.dart';
@@ -232,8 +232,7 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate
         menuItem.iconBytes = await IconConverter.iconToBytes(
           icon,
           size: 54.0,
-          color: CupertinoColors
-              .black, // Use black color, will be adapted in Swift side
+          color: const Color(0xFF000000),
         );
       } else if (icon is Widget) {
         menuItem.iconBytes = await IconConverter.iconWidgetToBytes(

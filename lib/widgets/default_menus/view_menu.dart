@@ -20,7 +20,7 @@ class IPadViewMenu extends IPadMenu {
          label: 'View',
          menus: [
            PlatformMenuItemWithIcon(
-             icon: CupertinoIcons.sidebar_left,
+             icon: _MenuIcons.sidebarLeft,
              label: 'Show Sidebar',
              onSelected: onShowSidebar,
              onSelectedIntent: onShowSidebarIntent,
