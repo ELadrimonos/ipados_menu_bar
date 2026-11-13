@@ -225,7 +225,7 @@ This package offers dual-optimized behavior for Apple ecosystems and responsive 
 | App Info Custom Children Items | ✅ |
 | Menu Icons Support | ✅ |
 | Widgets as Menu Icons Support | ✅ |
-| Multiple Windows support | 🚧 |
+| Multiple Windows support | ✅ |
 | Stateful Items (checked, unchecked, mixed) | ✅ |
 | Keyboard Shortcuts | ✅ |
 | Native menu items on other platforms (macOS)using `PlatformProvidedMenuItem` | ✅ |

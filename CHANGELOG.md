@@ -11,6 +11,13 @@
   - Default menu icons now ship as internal glyphs of the `cupertino_icons` font, which is a new dependency of the package (font asset only)
 - Updated Pigeon to 30.0.2 and regenerated the Dart and Swift bindings
 - Migrated the example apps to `material_ui` and `cupertino_ui`
+- Added multi-window focus support: with several `UIScene`s, each running its own `FlutterEngine`, the menu bar now shows the menus of the focused window and menu actions are delivered to that window's engine
+  - The iOS plugin keeps one instance and one set of menus per engine instead of a global "last engine wins" singleton; menus of a closed window are dropped with its engine
+  - Focus is tracked through the active appearance of each window scene, so it also follows windows that are on screen at the same time (windowed apps, Stage Manager, Split View)
+  - `IPadWindowMenu.entrypoint` and `IPadWindowMenu.arguments` are sent to the native side again; read them from your `AppDelegate` with the new `IpadOSMenubarPlugin.focusedWindowEntrypoint` and `IpadOSMenubarPlugin.focusedWindowEntrypointArguments` (a single JSON string) when configuring a new scene
+  - **Breaking (Swift):** `IpadOSMenubarPlugin.shared` is deprecated and now returns the instance of the focused window; use `IpadOSMenubarPlugin.focused`
+  - Reworked `example/multiple_windows_example` with one scene delegate per kind of window
+- Fixed the `buildMenu` swizzling being undone when a second engine registered the plugin, and menus being injected into context menus
 
 ## 0.6.1
 
