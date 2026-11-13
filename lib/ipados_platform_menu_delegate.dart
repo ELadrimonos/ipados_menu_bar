@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, visibleForTesting;
 import 'package:flutter/widgets.dart';
@@ -77,12 +78,19 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate
     _defaultMenuItems.clear();
 
     final List<NativeMenuItem> customMenus = <NativeMenuItem>[];
+    String? windowEntrypoint;
+    String? windowArguments;
 
     if (topLevelMenus.isNotEmpty) {
       for (final PlatformMenuItem childItem in topLevelMenus) {
         final pendingIcons = <(NativeMenuItem, Object)>[];
         if (childItem is IPadMenu) {
           _presentDefaultMenus.add(childItem.menuId);
+          if (childItem is IPadWindowMenu) {
+            windowEntrypoint = childItem.entrypoint;
+            final arguments = childItem.arguments;
+            windowArguments = arguments == null ? null : jsonEncode(arguments);
+          }
           final menuItems = _getChildrenRepresentation(
             childItem.menus,
             pendingIcons,
@@ -105,6 +113,8 @@ class IPadOSPlatformMenuDelegate extends PlatformMenuDelegate
         customMenus: customMenus,
         defaultMenus: _presentDefaultMenus.toList(),
         defaultMenuItems: _defaultMenuItems,
+        windowEntrypoint: windowEntrypoint,
+        windowArguments: windowArguments,
       ),
     );
   }

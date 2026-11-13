@@ -112,6 +112,18 @@ void main() {
     delegate.menuClosed(9999);
   });
 
+  test('sends the window entrypoint and JSON-encoded arguments', () async {
+    await delegate.setMenus([
+      IPadWindowMenu(entrypoint: 'secondMain', arguments: {'greeting': 'hi'}),
+    ]);
+    expect(hostApi.configuration!.windowEntrypoint, 'secondMain');
+    expect(hostApi.configuration!.windowArguments, '{"greeting":"hi"}');
+
+    await delegate.setMenus([IPadWindowMenu()]);
+    expect(hostApi.configuration!.windowEntrypoint, isNull);
+    expect(hostApi.configuration!.windowArguments, isNull);
+  });
+
   test('getAvailableDefaultMenus returns the native map or null', () async {
     expect(await delegate.getAvailableDefaultMenus(), {'file': 'File Menu'});
     hostApi.failAvailableMenus = true;

@@ -1,44 +1,82 @@
 import Flutter
 import UIKit
 
+/// Native side of the `ipados_menu_bar` plugin.
+///
+/// One instance exists per `FlutterEngine`. Each instance keeps the menus sent
+/// by its own engine; the menu bar shows the menus of the instance whose
+/// window scene has focus, and menu actions are delivered to that engine.
 public class IpadOSMenubarPlugin: NSObject, FlutterPlugin, IpadOSMenuHostApi {
+    private weak var registrar: FlutterPluginRegistrar?
     private var flutterApi: IpadOSMenuFlutterApi?
-    private var customMenus: [NativeMenuItem] = []
-    private var presentDefaultMenus: [String] = []
-    private var defaultMenuItems: [String: [NativeMenuItem]] = [:]
+    fileprivate var configuration: NativeMenuConfiguration?
 
-    public static var shared: IpadOSMenubarPlugin?
-    private var menuBuilderDelegate: MenuBuilderDelegate?
+    /// Identifies this instance inside the `propertyList` of key commands.
+    fileprivate let token: Int
 
-    public static func register(with registrar: FlutterPluginRegistrar) {
-        let instance = IpadOSMenubarPlugin()
-        instance.flutterApi = IpadOSMenuFlutterApi(binaryMessenger: registrar.messenger())
-        IpadOSMenuHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance)
+    private static var nextToken = 0
 
-        IpadOSMenubarPlugin.shared = instance
-        instance.setupMenuDelegate()
+    /// The plugin instance of the window scene that currently has focus.
+    @available(*, deprecated, message: "There is one plugin instance per FlutterEngine. Use `focused` instead.")
+    public static var shared: IpadOSMenubarPlugin? { focused }
 
-        print("IpadOSMenubarPlugin registered successfully")
+    /// The plugin instance whose window scene currently has focus, if any.
+    public static var focused: IpadOSMenubarPlugin? {
+        MenuFocusCoordinator.shared.resolveFocusedOrLast()
     }
 
-    private func setupMenuDelegate() {
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            menuBuilderDelegate = MenuBuilderDelegate(plugin: self)
-        }
+    /// Dart entrypoint that the focused window asked to use for new windows
+    /// (`IPadWindowMenu.entrypoint`), or `nil` to use the default one.
+    @objc public static var focusedWindowEntrypoint: String? {
+        MenuFocusCoordinator.shared.resolveFocusedOrLast()?.configuration?.windowEntrypoint
+    }
+
+    /// Entrypoint arguments that the focused window asked to hand to new
+    /// windows: a single JSON string built from `IPadWindowMenu.arguments`.
+    @objc public static var focusedWindowEntrypointArguments: [String]? {
+        guard
+            let json = MenuFocusCoordinator.shared.resolveFocusedOrLast()?.configuration?
+                .windowArguments
+        else { return nil }
+        return [json]
+    }
+
+    /// The window scene displaying the Flutter view of this instance's engine.
+    ///
+    /// `nil` while the engine has no view controller, or its view is not in a
+    /// window yet.
+    public var windowScene: UIWindowScene? {
+        registrar?.viewController?.viewIfLoaded?.window?.windowScene
+    }
+
+    private init(registrar: FlutterPluginRegistrar) {
+        self.registrar = registrar
+        IpadOSMenubarPlugin.nextToken += 1
+        token = IpadOSMenubarPlugin.nextToken
+        flutterApi = IpadOSMenuFlutterApi(binaryMessenger: registrar.messenger())
+        super.init()
+    }
+
+    /// Creates the plugin instance of the engine behind `registrar`.
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let instance = IpadOSMenubarPlugin(registrar: registrar)
+        IpadOSMenuHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance)
+        registrar.publish(instance)
+        MenuFocusCoordinator.shared.add(instance)
+    }
+
+    /// Drops the menus of an engine that is going away, e.g. because its
+    /// window was closed.
+    public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
+        IpadOSMenuHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: nil)
+        flutterApi = nil
+        configuration = nil
+        MenuFocusCoordinator.shared.remove(self)
     }
 
     func setMenus(configuration: NativeMenuConfiguration) throws {
-        customMenus = configuration.customMenus
-        presentDefaultMenus = configuration.defaultMenus
-        defaultMenuItems = configuration.defaultMenuItems
-
-        print("Custom menus: \(customMenus.count)")
-        print("Present default menus: \(presentDefaultMenus)")
-        print("Default menu items keys: \(defaultMenuItems.keys)")
-
-        DispatchQueue.main.async {
-            self.rebuildMenus()
-        }
+        self.configuration = configuration
+        MenuFocusCoordinator.shared.menusChanged(for: self)
     }
 
     func getAvailableDefaultMenus() throws -> [String: String] {
@@ -52,104 +90,234 @@ public class IpadOSMenubarPlugin: NSObject, FlutterPlugin, IpadOSMenuHostApi {
         ]
     }
 
-    private func rebuildMenus() {
-        UIMenuSystem.main.setNeedsRebuild()
-
-        NotificationCenter.default.post(
-            name: NSNotification.Name("FlutterMenusChanged"),
-            object: self,
-            userInfo: [
-                "customMenus": customMenus,
-                "presentDefaultMenus": presentDefaultMenus,
-                "defaultMenuItems": defaultMenuItems,
-            ]
-        )
-    }
-
-    func getCustomMenus() -> [NativeMenuItem] {
-        return customMenus.reversed()
-    }
-
-    func getPresentDefaultMenus() -> [String] {
-        return presentDefaultMenus
-    }
-
-    func getDefaultMenuItems() -> [String: [NativeMenuItem]] {
-        return defaultMenuItems
-    }
-
     func performAction(id: Int) {
-        print("Performing action for id: \(id)")
         guard let flutterApi = flutterApi else { return }
         Task { @MainActor in
             do {
                 try await flutterApi.menuSelected(id: Int64(id))
             } catch {
-                print("Failed to report menu selection \(id): \(error)")
+                menuLog("Failed to report menu selection \(id): \(error)")
             }
         }
     }
 }
 
-private class MenuBuilderDelegate {
-    weak var plugin: IpadOSMenubarPlugin?
+/// Logs `message` in debug builds only.
+func menuLog(_ message: @autoclosure () -> String) {
+    #if DEBUG
+        NSLog("[ipados_menu_bar] %@", message())
+    #endif
+}
 
-    init(plugin: IpadOSMenubarPlugin) {
-        self.plugin = plugin
-        setupMenuInterception()
+/// Tracks every live plugin instance and which of them owns the menu bar.
+final class MenuFocusCoordinator {
+    static let shared = MenuFocusCoordinator()
+
+    private let instances = NSHashTable<IpadOSMenubarPlugin>.weakObjects()
+    private weak var current: IpadOSMenubarPlugin?
+    private weak var lastFocused: IpadOSMenubarPlugin?
+    private weak var lastFocusedScene: UIWindowScene?
+    private let observedScenes = NSHashTable<UIWindowScene>.weakObjects()
+    private var installed = false
+
+    func add(_ instance: IpadOSMenubarPlugin) {
+        instances.add(instance)
+        installIfNeeded()
     }
 
-    private func setupMenuInterception() {
-        let originalSelector = #selector(UIResponder.buildMenu(with:))
-        let swizzledSelector = #selector(UIResponder.swizzled_buildMenu(with:))
+    func remove(_ instance: IpadOSMenubarPlugin) {
+        instances.remove(instance)
+        refresh(reason: "detach")
+    }
 
-        guard let originalMethod = class_getInstanceMethod(UIResponder.self, originalSelector),
-            let swizzledMethod = class_getInstanceMethod(UIResponder.self, swizzledSelector)
-        else {
-            return
+    func instance(withToken token: Int) -> IpadOSMenubarPlugin? {
+        instances.allObjects.first { $0.token == token }
+    }
+
+    func menusChanged(for instance: IpadOSMenubarPlugin) {
+        DispatchQueue.main.async {
+            self.observeTraits()
+            if self.resolveFocusedOrLast() === instance {
+                self.current = instance
+                UIMenuSystem.main.setNeedsRebuild()
+            }
+        }
+    }
+
+    private func installIfNeeded() {
+        guard !installed else { return }
+        installed = true
+
+        let original = #selector(UIResponder.buildMenu(with:))
+        let swizzled = #selector(UIResponder.ipadosMenuBar_buildMenu(with:))
+        if let originalMethod = class_getInstanceMethod(UIResponder.self, original),
+            let swizzledMethod = class_getInstanceMethod(UIResponder.self, swizzled)
+        {
+            method_exchangeImplementations(originalMethod, swizzledMethod)
         }
 
-        method_exchangeImplementations(originalMethod, swizzledMethod)
+        let center = NotificationCenter.default
+        let names: [Notification.Name] = [
+            UIScene.didActivateNotification,
+            UIScene.willDeactivateNotification,
+            UIScene.didDisconnectNotification,
+            UIScene.didEnterBackgroundNotification,
+            UIScene.willEnterForegroundNotification,
+        ]
+        for name in names {
+            center.addObserver(
+                self, selector: #selector(focusMayHaveChanged(_:)), name: name, object: nil)
+        }
+    }
+
+    @objc private func focusMayHaveChanged(_ notification: Notification) {
+        observeTraits()
+        // Scene state and traits settle after the notification is delivered.
+        DispatchQueue.main.async {
+            self.refresh(reason: notification.name.rawValue)
+        }
+    }
+
+    /// Watches the active appearance of every connected window scene: it is
+    /// the only signal UIKit gives when focus moves between two scenes that
+    /// are both in the foreground.
+    private func observeTraits() {
+        guard #available(iOS 17.0, *) else { return }
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene,
+                !observedScenes.contains(windowScene)
+            else { continue }
+            observedScenes.add(windowScene)
+            // Always called on the main thread, by UIKit or from the main queue.
+            MainActor.assumeIsolated {
+                _ = windowScene.registerForTraitChanges([UITraitActiveAppearance.self]) {
+                    [weak self] (_: UIWindowScene, _: UITraitCollection) in
+                    self?.refresh(reason: "activeAppearance")
+                }
+            }
+        }
+    }
+
+    private func describeState() -> String {
+        UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.map { scene in
+            var appearance = -1
+            if #available(iOS 14.0, *) {
+                appearance = scene.traitCollection.activeAppearance.rawValue
+            }
+            let engine = instances.allObjects.first { $0.windowScene === scene }
+            return
+                "\(scene.session.persistentIdentifier.prefix(6)):state=\(scene.activationState.rawValue),active=\(appearance),engine=#\(engine?.token ?? -1)"
+        }.joined(separator: " ")
+    }
+
+    /// The window scene that currently has focus.
+    ///
+    /// Several scenes can be `foregroundActive` at once (Stage Manager,
+    /// windowed apps, Split View), each with its own key window, so neither
+    /// tells them apart. Only the focused one has an active appearance.
+    func focusedScene() -> UIWindowScene? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let active = scenes.filter { $0.activationState == .foregroundActive }
+
+        var focused = active
+        if #available(iOS 14.0, *) {
+            focused = active.filter { $0.traitCollection.activeAppearance == .active }
+        }
+        if focused.count == 1 { return focused[0] }
+
+        // None or several candidates: traits are briefly stale while focus
+        // moves, and nothing took focus yet. The scene that had it keeps it
+        // while it stays on screen, e.g. while it is briefly inactive because
+        // the system is opening a new window from it. The trait observer
+        // runs again as soon as the traits settle.
+        let last = lastFocusedScene
+        if let last = last,
+            last.activationState == .foregroundActive
+                || last.activationState == .foregroundInactive,
+            scenes.contains(where: { $0 === last })
+        {
+            return last
+        }
+        return active.count == 1 ? active[0] : nil
+    }
+
+    func resolveFocused() -> IpadOSMenubarPlugin? {
+        let all = instances.allObjects
+        if let scene = focusedScene() {
+            lastFocusedScene = scene
+            // A focused scene without Flutter content shows no Flutter menus.
+            return all.first { $0.windowScene === scene }
+        }
+        // An app with a single engine keeps working even when the engine is
+        // not attached to a window scene yet.
+        if all.count == 1, all[0].windowScene == nil { return all[0] }
+        return nil
+    }
+
+    /// The focused instance or, while no scene has focus (a scene is being
+    /// opened, closed or switched), the one that had it last.
+    func resolveFocusedOrLast() -> IpadOSMenubarPlugin? {
+        if let focused = resolveFocused() {
+            lastFocused = focused
+            return focused
+        }
+        if focusedScene() != nil { return nil }
+        return lastFocused
+    }
+
+    func refresh(reason: String) {
+        let focused = resolveFocusedOrLast()
+        guard focused !== current else { return }
+        menuLog(
+            "focus #\(current?.token ?? -1) -> #\(focused?.token ?? -1) (\(reason)) \(describeState())")
+        current = focused
+        UIMenuSystem.main.setNeedsRebuild()
+    }
+
+    func buildMenus(with builder: UIMenuBuilder) {
+        let focused = resolveFocusedOrLast()
+        current = focused
+        focused?.buildAllMenus(with: builder)
     }
 }
 
 extension UIResponder {
-    @objc func swizzled_buildMenu(with builder: UIMenuBuilder) {
-        swizzled_buildMenu(with: builder)
+    @objc func ipadosMenuBar_buildMenu(with builder: UIMenuBuilder) {
+        // Calls the original implementation: the methods are exchanged.
+        ipadosMenuBar_buildMenu(with: builder)
 
-        if let plugin = IpadOSMenubarPlugin.shared {
-            plugin.buildAllMenus(with: builder)
-        }
+        guard builder.system == .main else { return }
+        MenuFocusCoordinator.shared.buildMenus(with: builder)
     }
 
     // Has to be inside UIResponder or else no UIKeyCommand will ever work
     @objc func handleKeyCommand(_ sender: UIKeyCommand) {
-        if let id = sender.propertyList as? Int {
-            // Call using plugin's singleton
-            IpadOSMenubarPlugin.shared?.performAction(id: id)
-        }
+        guard let info = sender.propertyList as? [String: Int],
+            let token = info["engine"], let id = info["id"]
+        else { return }
+        MenuFocusCoordinator.shared.instance(withToken: token)?.performAction(id: id)
     }
 }
 
 extension IpadOSMenubarPlugin {
     func buildAllMenus(with builder: UIMenuBuilder) {
-        print("Building all menus...")
+        guard let configuration = configuration else { return }
 
         // Configure default menus based on what's present in the widget tree
-        configureDefaultMenus(with: builder)
+        configureDefaultMenus(with: builder, configuration: configuration)
 
         // Build custom menus
-        buildCustomMenus(with: builder)
+        buildCustomMenus(with: builder, configuration: configuration)
 
         // Hide menus that are not present in the widget tree
-        hideAbsentDefaultMenus(with: builder)
+        hideAbsentDefaultMenus(with: builder, configuration: configuration)
     }
 
-    private func configureDefaultMenus(with builder: UIMenuBuilder) {
-        let presentMenus = getPresentDefaultMenus()
-        let menuItems = getDefaultMenuItems()
-
-        print("Configuring default menus. Present: \(presentMenus)")
+    private func configureDefaultMenus(
+        with builder: UIMenuBuilder, configuration: NativeMenuConfiguration
+    ) {
+        let presentMenus = configuration.defaultMenus
+        let menuItems = configuration.defaultMenuItems
 
         for menuId in presentMenus {
             if let items = menuItems[menuId] {
@@ -161,8 +329,6 @@ extension IpadOSMenubarPlugin {
     private func configureDefaultMenu(
         with builder: UIMenuBuilder, menuId: String, items: [NativeMenuItem]
     ) {
-        print("Configuring \(menuId) menu with \(items.count) items")
-
         let menuElements = buildMenuElements(from: items)
 
         guard !menuElements.isEmpty else { return }
@@ -194,49 +360,45 @@ extension IpadOSMenubarPlugin {
         case "view":
             builder.replaceChildren(ofMenu: .view) { _ in customMenu.children }
         default:
-            print("Unknown default menu ID: \(menuId)")
+            menuLog("Unknown default menu ID: \(menuId)")
         }
     }
 
-    private func hideAbsentDefaultMenus(with builder: UIMenuBuilder) {
-        let presentMenus = Set(getPresentDefaultMenus())
+    private func hideAbsentDefaultMenus(
+        with builder: UIMenuBuilder, configuration: NativeMenuConfiguration
+    ) {
+        let presentMenus = Set(configuration.defaultMenus)
         let allDefaultMenus: Set<String> = ["file", "edit", "format", "view", "toolbar"]
 
         // Hide menus that are not present in the widget tree
         let menusToHide = allDefaultMenus.subtracting(presentMenus)
-
-        print("Hiding absent default menus: \(menusToHide)")
 
         for menuId in menusToHide {
             hideDefaultMenu(with: builder, menuId: menuId)
         }
     }
 
-    private func buildCustomMenus(with builder: UIMenuBuilder) {
-        print("Building custom Flutter menus...")
-
-        let customMenus = getCustomMenus()
+    private func buildCustomMenus(
+        with builder: UIMenuBuilder, configuration: NativeMenuConfiguration
+    ) {
+        // Reversed to keep the Dart order: each menu is inserted at the same anchor
+        let customMenus = configuration.customMenus.reversed()
 
         for menuData in customMenus {
             guard let title = menuData.label else {
                 continue
             }
 
-            print("Building custom menu: \(title)")
-
             let menuElements = buildMenuElements(from: menuData.children)
             if !menuElements.isEmpty {
                 let customMenu = UIMenu(title: title, children: menuElements)
 
-                if insertCustomMenuInCorrectPosition(builder: builder, menu: customMenu) {
-                    print("Added custom menu: \(title)")
-                } else {
-                    print("Failed to add custom menu: \(title)")
-                }
+                insertCustomMenuInCorrectPosition(builder: builder, menu: customMenu)
             }
         }
     }
 
+    @discardableResult
     private func insertCustomMenuInCorrectPosition(builder: UIMenuBuilder, menu: UIMenu) -> Bool {
         // Correct order based on Apple HIG: AppInfo, File, Edit, Format, View, [CUSTOM], Window, Help
 
@@ -275,7 +437,7 @@ extension IpadOSMenubarPlugin {
             return true
         }
 
-        print("Warning: Could not find suitable position for custom menu")
+        menuLog("Warning: Could not find suitable position for custom menu")
         return false
     }
 
@@ -293,7 +455,7 @@ extension IpadOSMenubarPlugin {
         case "toolbar":
             builder.remove(menu: .toolbar)
         default:
-            print("Cannot hide menu: \(menuId) (AppInfo, Window and Help are protected)")
+            menuLog("Cannot hide menu: \(menuId) (AppInfo, Window and Help are protected)")
         }
     }
 
@@ -347,7 +509,7 @@ extension IpadOSMenubarPlugin {
                             image: displayedImage,
                             action: #selector(UIResponder.handleKeyCommand(_:)),
                             input: input, modifierFlags: modifiers,
-                            propertyList: id,
+                            propertyList: ["engine": token, "id": id],
                             attributes: enabled ? [] : [.disabled],
                             state: menuItemState
 
@@ -362,7 +524,6 @@ extension IpadOSMenubarPlugin {
                         state: menuItemState
 
                     ) { [weak self] _ in
-                        print("Menu action selected: \(title) (id: \(id))")
                         self?.performAction(id: id)
                     }
                     elements.append(action)

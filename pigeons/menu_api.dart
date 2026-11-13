@@ -55,11 +55,19 @@ class NativeMenuConfiguration {
     required this.customMenus,
     required this.defaultMenus,
     required this.defaultMenuItems,
+    this.windowEntrypoint,
+    this.windowArguments,
   });
 
   List<NativeMenuItem> customMenus;
   List<String> defaultMenus;
   Map<String, List<NativeMenuItem>> defaultMenuItems;
+
+  /// Dart entrypoint requested for windows opened from this engine's window.
+  String? windowEntrypoint;
+
+  /// JSON-encoded arguments handed to [windowEntrypoint].
+  String? windowArguments;
 }
 
 @HostApi()

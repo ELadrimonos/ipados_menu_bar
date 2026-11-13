@@ -320,6 +320,10 @@ struct NativeMenuConfiguration: Hashable, CustomStringConvertible {
   var customMenus: [NativeMenuItem]
   var defaultMenus: [String]
   var defaultMenuItems: [String: [NativeMenuItem]]
+  /// Dart entrypoint requested for windows opened from this engine's window.
+  var windowEntrypoint: String? = nil
+  /// JSON-encoded arguments handed to [windowEntrypoint].
+  var windowArguments: String? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -327,11 +331,15 @@ struct NativeMenuConfiguration: Hashable, CustomStringConvertible {
     let customMenus = pigeonVar_list[0] as! [NativeMenuItem]
     let defaultMenus = pigeonVar_list[1] as! [String]
     let defaultMenuItems = pigeonVar_list[2] as! [String: [NativeMenuItem]]
+    let windowEntrypoint: String? = nilOrValue(pigeonVar_list[3])
+    let windowArguments: String? = nilOrValue(pigeonVar_list[4])
 
     return NativeMenuConfiguration(
       customMenus: customMenus,
       defaultMenus: defaultMenus,
-      defaultMenuItems: defaultMenuItems
+      defaultMenuItems: defaultMenuItems,
+      windowEntrypoint: windowEntrypoint,
+      windowArguments: windowArguments
     )
   }
   func toList() -> [Any?] {
@@ -339,13 +347,15 @@ struct NativeMenuConfiguration: Hashable, CustomStringConvertible {
       customMenus,
       defaultMenus,
       defaultMenuItems,
+      windowEntrypoint,
+      windowArguments,
     ]
   }
   static func == (lhs: NativeMenuConfiguration, rhs: NativeMenuConfiguration) -> Bool {
     if Swift.type(of: lhs) != Swift.type(of: rhs) {
       return false
     }
-    return MessagesPigeonInternal.deepEquals(lhs.customMenus, rhs.customMenus) && MessagesPigeonInternal.deepEquals(lhs.defaultMenus, rhs.defaultMenus) && MessagesPigeonInternal.deepEquals(lhs.defaultMenuItems, rhs.defaultMenuItems)
+    return MessagesPigeonInternal.deepEquals(lhs.customMenus, rhs.customMenus) && MessagesPigeonInternal.deepEquals(lhs.defaultMenus, rhs.defaultMenus) && MessagesPigeonInternal.deepEquals(lhs.defaultMenuItems, rhs.defaultMenuItems) && MessagesPigeonInternal.deepEquals(lhs.windowEntrypoint, rhs.windowEntrypoint) && MessagesPigeonInternal.deepEquals(lhs.windowArguments, rhs.windowArguments)
   }
 
   func hash(into hasher: inout Hasher) {
@@ -353,10 +363,12 @@ struct NativeMenuConfiguration: Hashable, CustomStringConvertible {
     MessagesPigeonInternal.deepHash(value: customMenus, hasher: &hasher)
     MessagesPigeonInternal.deepHash(value: defaultMenus, hasher: &hasher)
     MessagesPigeonInternal.deepHash(value: defaultMenuItems, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: windowEntrypoint, hasher: &hasher)
+    MessagesPigeonInternal.deepHash(value: windowArguments, hasher: &hasher)
   }
 
   public var description: String {
-    return "NativeMenuConfiguration(customMenus: \(String(describing: customMenus)), defaultMenus: \(String(describing: defaultMenus)), defaultMenuItems: \(String(describing: defaultMenuItems)))"
+    return "NativeMenuConfiguration(customMenus: \(String(describing: customMenus)), defaultMenus: \(String(describing: defaultMenus)), defaultMenuItems: \(String(describing: defaultMenuItems)), windowEntrypoint: \(String(describing: windowEntrypoint)), windowArguments: \(String(describing: windowArguments)))"
   }
 }
 

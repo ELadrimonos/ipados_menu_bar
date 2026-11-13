@@ -1,22 +1,23 @@
 part of '../../ipados_menu_bar.dart';
 
 /// Custom [PlatformMenu] that integrates with iPadOS native window management
-/// and sets the scene identifier for new windows.
+/// and tells the native side what a new window opened from this one should run.
 ///
-/// This menu registers the entrypoint scene identifier with the platform delegate
-/// so that when a new window is opened from the native menu, it uses the correct scene.
+/// When an app has several windows (one `FlutterEngine` per `UIScene`), each
+/// window keeps its own [entrypoint] and [arguments]. The native plugin exposes
+/// the ones of the focused window as
+/// `IpadOSMenubarPlugin.focusedWindowEntrypoint` and
+/// `IpadOSMenubarPlugin.focusedWindowEntrypointArguments`, for the app delegate
+/// to read when the system asks it to configure a new scene.
 ///
 /// ## Usage Example
 ///
 /// ```dart
 /// IPadWindowMenu(
-///   entrypoint: 'SecondScene', // This will be used for new windows
+///   entrypoint: 'secondMain', // Dart entrypoint run by new windows
+///   arguments: {'greeting': 'Hello'},
 /// )
 /// ```
-///
-/// The delegate will automatically handle:
-/// - Setting the scene ID in Swift when opening new windows
-/// - Using the default "MainScene" if no entrypoint is specified
 ///
 /// *Manual management of scenes inside AppDelegate is required*
 class IPadWindowMenu extends IPadMenu {
@@ -96,10 +97,14 @@ class IPadWindowMenu extends IPadMenu {
          ],
        );
 
-  /// The scene identifier to use when opening new windows.
-  /// This value is automatically passed to the Swift side by the delegate.
+  /// Name of the Dart entrypoint that windows opened from this one should run.
+  ///
+  /// Sent to the native side by the delegate; `null` means the default one.
   final String? entrypoint;
 
-  /// Optional arguments passed to the platform when creating the new window.
+  /// Optional arguments handed to [entrypoint] of the new window.
+  ///
+  /// Sent to the native side as a JSON string, so the map must be encodable
+  /// with `jsonEncode`.
   final Map<String, dynamic>? arguments;
 }

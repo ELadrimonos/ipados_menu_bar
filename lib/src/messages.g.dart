@@ -10,9 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 
 Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
+  List<Object?>? replyList,
+  String channelName, {
+  required bool isNullValid,
 }) {
   if (replyList == null) {
     throw PlatformException(
@@ -34,8 +34,11 @@ Object? _extractReplyValueOrThrow(
   return replyList.firstOrNull;
 }
 
-
-List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty = false}) {
+List<Object?> wrapResponse({
+  Object? result,
+  PlatformException? error,
+  bool empty = false,
+}) {
   if (empty) {
     return <Object?>[];
   }
@@ -44,6 +47,7 @@ List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty
   }
   return <Object?>[error.code, error.message, error.details];
 }
+
 bool _deepEquals(Object? a, Object? b) {
   if (identical(a, b)) {
     return true;
@@ -56,8 +60,9 @@ bool _deepEquals(Object? a, Object? b) {
   }
   if (a is List && b is List) {
     return a.length == b.length &&
-        a.indexed
-            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+        a.indexed.every(
+          ((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]),
+        );
   }
   if (a is Map && b is Map) {
     if (a.length != b.length) {
@@ -106,41 +111,26 @@ int _deepHash(Object? value) {
   return value.hashCode;
 }
 
-
 /// Modifier keys of a keyboard shortcut.
-enum NativeMenuModifier {
-  shift,
-  control,
-  alt,
-  meta;
-}
+enum NativeMenuModifier { shift, control, alt, meta }
 
 /// Check state of a menu item, mirrors `UIMenuElement.State`.
-enum NativeMenuState {
-  on,
-  off,
-  mixed;
-}
+enum NativeMenuState { on, off, mixed }
 
 class NativeShortcut {
-  NativeShortcut({
-    required this.trigger,
-    required this.modifiers,
-  });
+  NativeShortcut({required this.trigger, required this.modifiers});
 
   String trigger;
 
   List<NativeMenuModifier> modifiers;
 
   List<Object?> _toList() {
-    return <Object?>[
-      trigger,
-      modifiers,
-    ];
+    return <Object?>[trigger, modifiers];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static NativeShortcut decode(Object result) {
     result as List<Object?>;
@@ -159,7 +149,8 @@ class NativeShortcut {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(trigger, other.trigger) && _deepEquals(modifiers, other.modifiers);
+    return _deepEquals(trigger, other.trigger) &&
+        _deepEquals(modifiers, other.modifiers);
   }
 
   @override
@@ -215,7 +206,8 @@ class NativeMenuItem {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static NativeMenuItem decode(Object result) {
     result as List<Object?>;
@@ -240,7 +232,14 @@ class NativeMenuItem {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(id, other.id) && _deepEquals(label, other.label) && _deepEquals(enabled, other.enabled) && _deepEquals(isGroup, other.isGroup) && _deepEquals(children, other.children) && _deepEquals(iconBytes, other.iconBytes) && _deepEquals(shortcut, other.shortcut) && _deepEquals(state, other.state);
+    return _deepEquals(id, other.id) &&
+        _deepEquals(label, other.label) &&
+        _deepEquals(enabled, other.enabled) &&
+        _deepEquals(isGroup, other.isGroup) &&
+        _deepEquals(children, other.children) &&
+        _deepEquals(iconBytes, other.iconBytes) &&
+        _deepEquals(shortcut, other.shortcut) &&
+        _deepEquals(state, other.state);
   }
 
   @override
@@ -258,6 +257,8 @@ class NativeMenuConfiguration {
     required this.customMenus,
     required this.defaultMenus,
     required this.defaultMenuItems,
+    this.windowEntrypoint,
+    this.windowArguments,
   });
 
   List<NativeMenuItem> customMenus;
@@ -266,23 +267,35 @@ class NativeMenuConfiguration {
 
   Map<String, List<NativeMenuItem>> defaultMenuItems;
 
+  /// Dart entrypoint requested for windows opened from this engine's window.
+  String? windowEntrypoint;
+
+  /// JSON-encoded arguments handed to [windowEntrypoint].
+  String? windowArguments;
+
   List<Object?> _toList() {
     return <Object?>[
       customMenus,
       defaultMenus,
       defaultMenuItems,
+      windowEntrypoint,
+      windowArguments,
     ];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static NativeMenuConfiguration decode(Object result) {
     result as List<Object?>;
     return NativeMenuConfiguration(
       customMenus: (result[0]! as List<Object?>).cast<NativeMenuItem>(),
       defaultMenus: (result[1]! as List<Object?>).cast<String>(),
-      defaultMenuItems: (result[2]! as Map<Object?, Object?>).cast<String, List<NativeMenuItem>>(),
+      defaultMenuItems: (result[2]! as Map<Object?, Object?>)
+          .cast<String, List<NativeMenuItem>>(),
+      windowEntrypoint: result[3] as String?,
+      windowArguments: result[4] as String?,
     );
   }
 
@@ -295,7 +308,11 @@ class NativeMenuConfiguration {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(customMenus, other.customMenus) && _deepEquals(defaultMenus, other.defaultMenus) && _deepEquals(defaultMenuItems, other.defaultMenuItems);
+    return _deepEquals(customMenus, other.customMenus) &&
+        _deepEquals(defaultMenus, other.defaultMenus) &&
+        _deepEquals(defaultMenuItems, other.defaultMenuItems) &&
+        _deepEquals(windowEntrypoint, other.windowEntrypoint) &&
+        _deepEquals(windowArguments, other.windowArguments);
   }
 
   @override
@@ -304,10 +321,9 @@ class NativeMenuConfiguration {
 
   @override
   String toString() {
-    return 'NativeMenuConfiguration(customMenus: $customMenus, defaultMenus: $defaultMenus, defaultMenuItems: $defaultMenuItems)';
+    return 'NativeMenuConfiguration(customMenus: $customMenus, defaultMenus: $defaultMenus, defaultMenuItems: $defaultMenuItems, windowEntrypoint: $windowEntrypoint, windowArguments: $windowArguments)';
   }
 }
-
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -316,19 +332,19 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is NativeMenuModifier) {
+    } else if (value is NativeMenuModifier) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is NativeMenuState) {
+    } else if (value is NativeMenuState) {
       buffer.putUint8(130);
       writeValue(buffer, value.index);
-    }    else if (value is NativeShortcut) {
+    } else if (value is NativeShortcut) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is NativeMenuItem) {
+    } else if (value is NativeMenuItem) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is NativeMenuConfiguration) {
+    } else if (value is NativeMenuConfiguration) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
     } else {
@@ -362,37 +378,40 @@ class IpadOSMenuHostApi {
   /// available for dependency injection. If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   IpadOSMenuHostApi({
-      BinaryMessenger? binaryMessenger, 
-      String messageChannelSuffix = '', 
-      })
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  }) : pigeonVar_binaryMessenger = binaryMessenger,
+       pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
+           ? '.$messageChannelSuffix'
+           : '';
 
   final BinaryMessenger? pigeonVar_binaryMessenger;
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
 
   final String pigeonVar_messageChannelSuffix;
 
-
   Future<void> setMenus(NativeMenuConfiguration configuration) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuHostApi.setMenus$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuHostApi.setMenus$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[configuration]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[configuration],
+    );
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<Map<String, String>> getAvailableDefaultMenus() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuHostApi.getAvailableDefaultMenus$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuHostApi.getAvailableDefaultMenus$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -401,12 +420,12 @@ class IpadOSMenuHostApi {
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return (pigeonVar_replyValue! as Map<Object?, Object?>).cast<String, String>();
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
+    return (pigeonVar_replyValue! as Map<Object?, Object?>)
+        .cast<String, String>();
   }
 }
 
@@ -419,16 +438,20 @@ abstract class IpadOSMenuFlutterApi {
 
   void menuClosed(int id);
 
-  static void setUp(IpadOSMenuFlutterApi? api, {
+  static void setUp(
+    IpadOSMenuFlutterApi? api, {
     BinaryMessenger? binaryMessenger,
     String messageChannelSuffix = '',
-  }) 
-{
-    messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  }) {
+    messageChannelSuffix = messageChannelSuffix.isNotEmpty
+        ? '.$messageChannelSuffix'
+        : '';
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuFlutterApi.menuSelected$messageChannelSuffix', pigeonChannelCodec,
-          binaryMessenger: binaryMessenger);
+        'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuFlutterApi.menuSelected$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
@@ -440,16 +463,20 @@ abstract class IpadOSMenuFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
           }
         });
       }
     }
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuFlutterApi.menuOpened$messageChannelSuffix', pigeonChannelCodec,
-          binaryMessenger: binaryMessenger);
+        'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuFlutterApi.menuOpened$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
@@ -461,16 +488,20 @@ abstract class IpadOSMenuFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
           }
         });
       }
     }
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuFlutterApi.menuClosed$messageChannelSuffix', pigeonChannelCodec,
-          binaryMessenger: binaryMessenger);
+        'dev.flutter.pigeon.ipados_menu_bar.IpadOSMenuFlutterApi.menuClosed$messageChannelSuffix',
+        pigeonChannelCodec,
+        binaryMessenger: binaryMessenger,
+      );
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
@@ -482,8 +513,10 @@ abstract class IpadOSMenuFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+              error: PlatformException(code: 'error', message: e.toString()),
+            );
           }
         });
       }
