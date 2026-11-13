@@ -306,11 +306,14 @@ extension IpadOSMenubarPlugin {
         // Configure default menus based on what's present in the widget tree
         configureDefaultMenus(with: builder, configuration: configuration)
 
+        // Hide menus that are not present in the widget tree. This must happen
+        // before inserting custom menus: the system menus carry key commands
+        // (e.g. Format > Font: ⌘T, ⌘+, ⌘-) and UIKit drops a whole custom
+        // menu whose key commands collide with one already in the menu bar.
+        hideAbsentDefaultMenus(with: builder, configuration: configuration)
+
         // Build custom menus
         buildCustomMenus(with: builder, configuration: configuration)
-
-        // Hide menus that are not present in the widget tree
-        hideAbsentDefaultMenus(with: builder, configuration: configuration)
     }
 
     private func configureDefaultMenus(

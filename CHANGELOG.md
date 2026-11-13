@@ -17,6 +17,7 @@
   - `IPadWindowMenu.entrypoint` and `IPadWindowMenu.arguments` are sent to the native side again; read them from your `AppDelegate` with the new `IpadOSMenubarPlugin.focusedWindowEntrypoint` and `IpadOSMenubarPlugin.focusedWindowEntrypointArguments` (a single JSON string) when configuring a new scene
   - **Breaking (Swift):** `IpadOSMenubarPlugin.shared` is deprecated and now returns the instance of the focused window; use `IpadOSMenubarPlugin.focused`
   - Reworked `example/multiple_windows_example` with one scene delegate per kind of window
+- Fixed custom menus disappearing from the menu bar when their shortcuts collide with those of a system menu the widget tree does not use (e.g. ⌘T in Format > Font): absent default menus are now removed before the custom menus are inserted
 - Fixed the `buildMenu` swizzling being undone when a second engine registered the plugin, and menus being injected into context menus
 
 ## 0.6.1

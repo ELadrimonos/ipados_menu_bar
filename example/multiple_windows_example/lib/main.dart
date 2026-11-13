@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cupertino_sidebar/cupertino_sidebar.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -8,6 +9,15 @@ import 'package:ipados_menu_bar/ipados_menu_bar.dart';
 // Every window (UIScene) runs its own FlutterEngine, so each entrypoint below
 // installs its own menu delegate. The plugin shows the menus of the focused
 // window and sends menu actions back to that window's engine.
+
+/// Background of this window. Every window runs its own engine (and isolate),
+/// so this is evaluated once per window and each one gets its own color.
+final Color _windowColor = HSLColor.fromAHSL(
+  1,
+  Random().nextDouble() * 360,
+  0.6,
+  0.85,
+).toColor();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +48,37 @@ void thirdMain() {
   runApp(const ThirdApp());
 }
 
+/// Builds the counter items bound to the state of one window. Each window has
+/// its own counter, so using these items (or ⌘= / ⌘-) must only change the
+/// counter of the focused window.
+List<PlatformMenuItem> _counterItems({
+  required int count,
+  required VoidCallback onIncrement,
+  required VoidCallback onDecrement,
+  required VoidCallback onReset,
+}) {
+  return [
+    PlatformMenuItem(label: 'Count: $count'),
+    PlatformMenuItemGroup(
+      members: [
+        PlatformMenuItemWithIcon(
+          label: 'Increment',
+          icon: CupertinoIcons.plus,
+          shortcut: const SingleActivator(LogicalKeyboardKey.equal, meta: true),
+          onSelected: onIncrement,
+        ),
+        PlatformMenuItemWithIcon(
+          label: 'Decrement',
+          icon: CupertinoIcons.minus,
+          shortcut: const SingleActivator(LogicalKeyboardKey.minus, meta: true),
+          onSelected: onDecrement,
+        ),
+      ],
+    ),
+    PlatformMenuItem(label: 'Reset', onSelected: count == 0 ? null : onReset),
+  ];
+}
+
 String? _greetingFrom(List<String> args) {
   if (args.isEmpty) return null;
   try {
@@ -61,11 +102,13 @@ class SecondApp extends StatefulWidget {
 
 class _SecondAppState extends State<SecondApp> {
   String _lastAction = 'none';
+  int _count = 0;
 
   @override
   Widget build(BuildContext context) {
     return CupertinoApp(
       home: CupertinoPageScaffold(
+        backgroundColor: _windowColor,
         navigationBar: const CupertinoNavigationBar(
           padding: EdgeInsetsDirectional.only(start: 64),
           middle: Text('Second Window'),
@@ -88,6 +131,12 @@ class _SecondAppState extends State<SecondApp> {
                   onSelected: () =>
                       setState(() => _lastAction = 'Walk the plank'),
                 ),
+                ..._counterItems(
+                  count: _count,
+                  onIncrement: () => setState(() => _count++),
+                  onDecrement: () => setState(() => _count--),
+                  onReset: () => setState(() => _count = 0),
+                ),
               ],
             ),
           ],
@@ -99,6 +148,7 @@ class _SecondAppState extends State<SecondApp> {
                 const Text('This window runs its own engine and menus'),
                 Text('Message received: ${widget.message}'),
                 Text('Last menu action: $_lastAction'),
+                Text('Count: $_count', style: const TextStyle(fontSize: 32)),
               ],
             ),
           ),
@@ -113,14 +163,14 @@ class ThirdApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CupertinoApp(
+    return CupertinoApp(
       home: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
+        backgroundColor: _windowColor,
+        navigationBar: const CupertinoNavigationBar(
           padding: EdgeInsetsDirectional.only(start: 64),
           middle: Text('Third Window'),
         ),
-        backgroundColor: CupertinoColors.destructiveRed,
-        child: Center(child: Text('This window has no Flutter menus')),
+        child: const Center(child: Text('This window has no Flutter menus')),
       ),
     );
   }
@@ -138,6 +188,7 @@ class _MyAppState extends State<MyApp> {
   bool expandedSideBar = false;
   MenuItemState openThirdInsteadOfSecond = MenuItemState.off;
   String _lastAction = 'none';
+  int _count = 0;
 
   MenuItemState _currentTriState = MenuItemState.off;
   IconData _currentTriStateIcon = CupertinoIcons.shield_slash;
@@ -163,6 +214,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return CupertinoApp(
       home: CupertinoPageScaffold(
+        backgroundColor: _windowColor,
         navigationBar: CupertinoNavigationBar(
           padding: const EdgeInsetsDirectional.only(start: 64),
           leading: CupertinoButton(
@@ -287,6 +339,15 @@ class _MyAppState extends State<MyApp> {
                   ),
               ],
             ),
+            PlatformMenu(
+              label: 'Counter',
+              menus: _counterItems(
+                count: _count,
+                onIncrement: () => setState(() => _count++),
+                onDecrement: () => setState(() => _count--),
+                onReset: () => setState(() => _count = 0),
+              ),
+            ),
           ],
           child: Row(
             children: [
@@ -305,6 +366,10 @@ class _MyAppState extends State<MyApp> {
                         'menu bar. Open more windows from Window > New Window.',
                       ),
                       Text('Last menu action: $_lastAction'),
+                      Text(
+                        'Count: $_count',
+                        style: const TextStyle(fontSize: 32),
+                      ),
                       const SizedBox(
                         width: 200,
                         height: 36,
