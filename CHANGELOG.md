@@ -1,3 +1,7 @@
+## 0.7.1
+
+- Widened the `cupertino_icons` constraint to `>=1.0.8 <3.0.0` so the package supports the latest stable version (the font asset is identical in 1.x and 2.0.0)
+
 ## 0.7.0
 
 - Replaced the hand-written `MethodChannel` payload with a typed [Pigeon](https://pub.dev/packages/pigeon) API (`pigeons/menu_api.dart`) shared by Dart and Swift
